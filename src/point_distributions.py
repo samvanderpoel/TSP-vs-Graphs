@@ -1,5 +1,5 @@
 # This file contains methods to generate various point distributions. 
-# Most of these are sourced from the paper of Jon Bentley's experimental TSP paper:
+# Most of these are sourced from Jon Bentley's experimental TSP paper:
 #
 #       Bentley, Jon Jouis. "Fast algorithms for geometric traveling salesman problems."
 #       ORSA Journal on computing 4.4 (1992): 387-411.

@@ -10,6 +10,4 @@
 module load shared
 module load anaconda/3
 
-cd /gpfs/scratch/svanderpoel/simulation
-
-bash simulate.sh
+bash src/simulate.sh

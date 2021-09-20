@@ -4,7 +4,7 @@ import numpy as np
 import networkx as nx
 
 import argparse
-import os # for get_tsp_path
+import os
 import time
 
 from graphfuncs import *
@@ -16,7 +16,7 @@ def compare(d, comp, g1, g2, div, num_in_batch):
     d[comp] = [num_common_edges(g1[i], g2[i])/div for i in range(num_in_batch)]
     print('Finished comparison: ' + comp)
 
-def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_comps):
+def simulate(minpts, maxpts, interval, batch, numrunsper, randtype, which_comps):
 
     start_time = time.time()
     
@@ -33,8 +33,20 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
                      'tour':functools.partial(get_tsp_graph, mode='tour', metric='2')}
     graphs_to_compute = set(which_comps.keys()) | set(graphid for v in which_comps.values() for graphid in v)
 
+    dirnames = {'pts_uni':'uniform-sqr',
+                'pts_annulus':'annulus',
+                'pts_annulus_random':'annulus-rand',
+                'pts_ball':'uniform-ball',
+                'pts_clusnorm':'normal-clust',
+                'pts_cubediam':'uniform-diam',
+                'pts_corners':'corners',
+                'pts_grid':'uniform-grid',
+                'pts_normal':'normal-bivar',
+                'pts_spokes':'spokes',
+                'pts_concentric_circular_points':'concen-circ'}
+    dirname = dirnames[randtype] + "-results"
     cwd = os.getcwd()
-    randdir = os.path.join(cwd, randtype + '-results')
+    randdir = os.path.join(cwd, "results/" + dirname)
     if not os.path.isdir(randdir):
         os.makedirs(randdir)
 
@@ -44,7 +56,7 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
     for numpts in range(minpts,maxpts,interval):
         s = time.time()
         for idx, num_in_batch in enumerate(batchnums):
-            with open(randtype + '-results/' + 'meta.txt', 'w') as f:
+            with open(randdir + '/meta.txt', 'w') as f:
                 runcount = sum(batchnums[:idx])
                 metadata = {'minpts-latest-run':minpts, 'maxpts-latest-run':maxpts,
                             'interval-latest-run':interval, 'batch-latest-run':batch,
@@ -75,8 +87,8 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
 
             comp_details = {}
             for major_id in which_comps:
+                div = numpts if major_id in ['tour', 'bito'] else numpts-1
                 for minor_id in which_comps[major_id]:
-                    div = numpts if major_id in ['tour', 'bito'] else numpts-1
                     comp_details['_'.join([major_id, minor_id])] = [graphs[minor_id], graphs[major_id], div]
             manager = Manager()
             new_fracs = manager.dict()
@@ -90,8 +102,8 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
             for proc in procs:
                 proc.join()
             
-            if os.path.exists(randtype + '-results/data.txt'):
-                with open(randtype + '-results/data.txt', "r+") as f:
+            if os.path.exists(randdir + "/data.txt"):
+                with open(randdir + "/data.txt", "r+") as f:
                     data = eval(f.read())
                     for comp in comparisons:
                         if numpts not in data[comp]:
@@ -101,7 +113,7 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
                     f.write(str(data))
                     f.truncate()
             else:
-                with open(randtype + '-results/data.txt', 'w') as f:
+                with open(randdir + "/data.txt", 'w') as f:
                     f.write(str({comp:{numpts:new_fracs[comp]} for comp in comparisons}))
             print("done updating data file")
 
@@ -114,19 +126,25 @@ def simulate_all(minpts, maxpts, interval, batch, numrunsper, randtype, which_co
                    not os.path.isdir(os.path.join(cwd, item)):
                     os.remove(os.path.join(cwd, item))
         time_for_numpts = time.time()-s
-        with open(randtype + '-results/compute-times.txt', 'a+') as f:
+        with open(randdir + '/compute-times.txt', 'a+') as f:
             f.write('Numpts: ' + str(numpts) + ',\tCompute time: ' + str(round(time_for_numpts, 3)) + ' secs\t\t= ' + \
                     str(round(time_for_numpts/60, 3)) + ' mins\t\t= ' + str(round(time_for_numpts/3600, 3)) + ' hours\n')
 
     cwd = os.getcwd()
     if os.path.isdir(os.path.join(cwd, "tour-wds/")):
-        for item in os.listdir(os.path.join(cwd, "tour-wds/")):
-            os.rmdir(os.path.join(cwd, "tour-wds/" + item))
-        os.rmdir(os.path.join(cwd, "tour-wds/"))
+        try:
+            for item in os.listdir(os.path.join(cwd, "tour-wds/")):
+                os.rmdir(os.path.join(cwd, "tour-wds/" + item))
+            os.rmdir(os.path.join(cwd, "tour-wds/"))
+        except:
+            pass
     if os.path.isdir(os.path.join(cwd, "path-wds/")):
-        for item in os.listdir(os.path.join(cwd, "path-wds/")):
-            os.rmdir(os.path.join(cwd, "path-wds/" + item))
-        os.rmdir(os.path.join(cwd, "path-wds/"))
+        try:
+            for item in os.listdir(os.path.join(cwd, "path-wds/")):
+                os.rmdir(os.path.join(cwd, "path-wds/" + item))
+            os.rmdir(os.path.join(cwd, "path-wds/"))
+        except:
+            pass
 
     print("Total time in seconds: " + str(time.time() - start_time))
 
@@ -149,5 +167,5 @@ all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', 'bito',
              'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del']}
 which_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', 'path'],
                'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del']}
-simulate_all(minpts=minpts, maxpts=maxpts, interval=interval, batch=batch,
+simulate(minpts=minpts, maxpts=maxpts, interval=interval, batch=batch,
              numrunsper=numrunsper, randtype=randtype, which_comps=all_comps)
