@@ -117,14 +117,6 @@ def simulate(minpts, maxpts, interval, batch, numrunsper, randtype, which_comps)
                     f.write(str({comp:{numpts:new_fracs[comp]} for comp in comparisons}))
             print("done updating data file")
 
-            # delete all items in cwd that are not .py, .sh, .slurm, .txt, or directory
-            cwd = os.getcwd()
-            contents = os.listdir(cwd)
-            for item in contents:
-                if not item.endswith(".py") and not item.endswith(".sh") and \
-                   not item.endswith(".slurm") and not item.endswith(".txt") and \
-                   not os.path.isdir(os.path.join(cwd, item)):
-                    os.remove(os.path.join(cwd, item))
         time_for_numpts = time.time()-s
         with open(randdir + '/compute-times.txt', 'a+') as f:
             f.write('Numpts: ' + str(numpts) + ',\tCompute time: ' + str(round(time_for_numpts, 3)) + ' secs\t\t= ' + \
