@@ -226,16 +226,19 @@ def get_bitonic_tour(points, q, iteration):
     bitonic_tour.add_nodes_from(zip(range(len(points)), coords))
     n = len(points)
     
-    min_lengths = [0, np.linalg.norm(points[0]-points[1])]
-    partial_bitonic_path_edges = {1:[[1,0]]}
+    min_lengths = [0, np.linalg.norm(points[0]-points[1])] # records lengths of latest partial path
+    partial_bitonic_path_edges = {1:[[1,0]]} # records partial bitonic paths at each iteration l
     for l in range(2,n):
         path_values = []
         for i in range(2,l+1):
+            # record lengths of candidate paths at the l-th step
             path_values.append(np.linalg.norm(points[l]-points[i-2]) + \
                                min_lengths[i-1] + \
                                sum( [np.linalg.norm(points[k]-points[k-1]) for k in range(i,l)] ) )
+        # determine length and index of shortest candidate path
         path_lngth, idx = min((val, idx) for (idx, val) in enumerate(path_values))
         min_lengths = min_lengths + [path_lngth]
+        # update latest partial bitonic path
         partial_bitonic_path_edges[l] = partial_bitonic_path_edges[idx+1] + [[l,idx]] + \
                                         [[k-1,k] for k in range(idx+2,l)]
     bitonic_tour_edges = partial_bitonic_path_edges[n-1] + [[n-2,n-1]]
