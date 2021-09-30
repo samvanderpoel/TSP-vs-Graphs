@@ -53,7 +53,7 @@ for item in contents:
                       str(pct75)   + '\t' + \
                       str(maximum))
                 subset = round(np.mean(all_data==1), 3)
-                print('Fraction of point clouds whose intersection is not 100%: ' + str(subset))
+                print('Fraction of point clouds whose intersection is 100%: ' + str(subset))
                 new_result = [item[:-8], majorid, minorid, minimum, pct25, median, pct75, maximum, subset]
                 results.append(new_result)
                 if not summary:

@@ -6,6 +6,7 @@ import networkx as nx
 import argparse
 import os
 import time
+import datetime
 
 from graphfuncs import *
 from utils import *
@@ -27,7 +28,29 @@ A graph having major_id means that other graphs are being
 compared against it.
 """
 
-def compare(d, comp, g1, g2, div):
+def graph_to_yaml(graph, comp, dirname):
+    """
+    Writes the coordinates of a nx graph to a yaml file.
+        graph:
+            nx graph
+        comp:
+            comparison id, of the form 'majorid_minorid'
+        dirname:
+            dir in which to create anomalies folder and write yaml files
+    """
+    points = [graph.nodes[node]["pos"] for node in list(graph.nodes)]
+    n = len(points)
+    anom_dir = os.path.join(dirname, 'anomalies/' + comp)
+    if not os.path.isdir(anom_dir):
+        os.makedirs(anom_dir)
+    timenow = str(datetime.datetime.now()).replace('-','').replace(' ','').replace(':','').replace('.','')
+    filepath = os.path.join(anom_dir, str(n) + '_' + timenow + '.yaml')
+    with open(filepath, 'w+') as file:
+        file.write('points:\n')
+        for point in points:
+            file.write('  - [{a},{b}]\n'.format(a=point[0], b=point[1]))
+
+def compare(d, comp, g1, g2, div, anomalies, dirname):
     """
     Compares two dictionaries g1, g2 of graphs indexed by iteration
         d:
@@ -39,12 +62,19 @@ def compare(d, comp, g1, g2, div):
         div:
             n or n-1, depending whether g1 contains paths or cycles
     """
-    print('Working on comparison: ' + comp)
+    #print('Working on comparison: ' + comp)
     n = len(g1)
-    d[comp] = [num_common_edges(g1[i], g2[i])/div for i in range(n)]
-    print('Finished comparison: ' + comp)
+    new_data = []
+    for i in range(n):
+        common = num_common_edges(g1[i], g2[i]) / div
+        new_data += [common]
+        if comp in anomalies and common < anomalies[comp]:
+            graph_to_yaml(g1[i], comp, dirname)
+    d[comp] = new_data
 
-def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps):
+    #print('Finished comparison: ' + comp)
+
+def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps, anomalies={}):
     """
     Main simulation function.
         minpts, maxpts, interval:
@@ -57,6 +87,10 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps)
             string indicating point cloud type (defined in point_distributions.py)
         which_comps:
             dictionary specifying the exact set of comparisons to be made
+        anomalies:
+            dictionary of the form {comparison:fraction} of comparisons for which
+            point clouds should be recorded if intersection is less than a user-
+            specified fraction
     """
     start_time = time.time()
     
@@ -146,7 +180,8 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps)
             # make all graph comparisons in parallel
             for comp in comp_details:
                 proc = Process(target=functools.partial(compare, d=new_fracs, comp=comp, g1=comp_details[comp][0],
-                                                        g2=comp_details[comp][1], div=comp_details[comp][2]))
+                                                        g2=comp_details[comp][1], div=comp_details[comp][2],
+                                                        anomalies=anomalies, dirname=randdir))
                 procs.append(proc)
                 proc.start()
             for proc in procs:
@@ -211,7 +246,8 @@ randtype   = args.randtype
 all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'bito', 'path'],
              'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del'],
              'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}
-which_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'path'],
-               'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}
+which_comps = {'tour':['2del'],
+               'path':['2del']}
+anomalies = {'tour_2del':1, 'path_2del':1}
 simulate(minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
-         batch=batch, randtype=randtype, which_comps=all_comps)
+         batch=batch, randtype=randtype, which_comps=all_comps, anomalies={})

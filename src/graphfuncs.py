@@ -16,7 +16,7 @@ from orderk_delaunay import *
 def get_knng_graph(points, q, iteration, k=1, metric=2):
     print("Working on " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points     = np.array(points)
-    coords     = [{"coods":pt} for pt in points]
+    coords     = [{"pos":pt} for pt in points]
     knng_graph = nx.Graph()
     knng_graph.add_nodes_from(zip(range(len(points)), coords))
     if metric=='inf':
@@ -49,7 +49,7 @@ def get_pctnng_graph(points, q, iteration, pct=0.20, metric=2):
     points     = np.array(points)
     n = len(points)
     k = math.ceil(pct * n)
-    coords     = [{"coods":pt} for pt in points]
+    coords     = [{"pos":pt} for pt in points]
     pctnng_graph = nx.Graph()
     pctnng_graph.add_nodes_from(zip(range(len(points)), coords))
     if metric=='inf':
@@ -80,7 +80,7 @@ def get_pctnng_graph(points, q, iteration, pct=0.20, metric=2):
 def get_delaunay_tri_graph(points, q, iteration):
     print("Working on Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points       = np.array(points)
-    coords       = [{"coods":pt} for pt in points]
+    coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
     deltri_graph = nx.Graph()
 
@@ -94,8 +94,8 @@ def get_delaunay_tri_graph(points, q, iteration):
     total_weight_of_edges = 0.0
     for edge in deltri_graph.edges:
         n1, n2 = edge
-        pt1 = deltri_graph.nodes[n1]['coods'] 
-        pt2 = deltri_graph.nodes[n2]['coods']
+        pt1 = deltri_graph.nodes[n1]['pos'] 
+        pt2 = deltri_graph.nodes[n2]['pos']
         edge_wt = np.linalg.norm(pt1-pt2)
         deltri_graph.edges[n1,n2]['weight'] = edge_wt
         total_weight_of_edges = total_weight_of_edges + edge_wt 
@@ -110,7 +110,7 @@ def get_delaunay_tri_graph(points, q, iteration):
 def get_mst_graph(points, q, iteration):
     print("Working on MST, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points = np.array(points)
-    coords       = [{"coods":pt} for pt in points]
+    coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
     deltri_graph = nx.Graph()
     deltri_graph.add_nodes_from(zip(range(len(points)), coords))
@@ -120,8 +120,8 @@ def get_mst_graph(points, q, iteration):
     deltri_graph.add_edges_from(edge_list)
     for edge in deltri_graph.edges:
         n1, n2 = edge
-        pt1 = deltri_graph.nodes[n1]['coods'] 
-        pt2 = deltri_graph.nodes[n2]['coods']
+        pt1 = deltri_graph.nodes[n1]['pos'] 
+        pt2 = deltri_graph.nodes[n2]['pos']
         edge_wt = np.linalg.norm(pt1-pt2)
         deltri_graph.edges[n1,n2]['weight'] = edge_wt
 
@@ -141,7 +141,7 @@ def get_gabriel_graph(points, q, iteration):
         return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
     
     points = np.array(points)
-    coords = [{"coods":pt} for pt in points]
+    coords = [{"pos":pt} for pt in points]
     gabriel = nx.Graph()
     gabriel.add_nodes_from(zip(range(len(points)), coords))
 
@@ -183,7 +183,7 @@ def get_gabriel_graph(points, q, iteration):
 def get_urquhart_graph(points, q, iteration):
     print("Working on Urquhart, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points       = np.array(points)
-    coords       = [{"coods":pt} for pt in points]
+    coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
     urq_graph = nx.Graph()
 
@@ -206,8 +206,8 @@ def get_urquhart_graph(points, q, iteration):
     total_weight_of_edges = 0.0
     for edge in urq_graph.edges:
         n1, n2 = edge
-        pt1 = urq_graph.nodes[n1]['coods'] 
-        pt2 = urq_graph.nodes[n2]['coods']
+        pt1 = urq_graph.nodes[n1]['pos'] 
+        pt2 = urq_graph.nodes[n2]['pos']
         edge_wt = np.linalg.norm(pt1-pt2)
         urq_graph.edges[n1,n2]['weight'] = edge_wt
         total_weight_of_edges = total_weight_of_edges + edge_wt 
@@ -223,7 +223,7 @@ def get_bitonic_tour(points, q, iteration):
     print("Working on Bitonic TSP, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points = np.array(points)
     #points = sorted(points , key=lambda k: [k[0], k[1]])
-    coords = [{"coods":pt} for pt in points]
+    coords = [{"pos":pt} for pt in points]
     bitonic_tour = nx.Graph()
     bitonic_tour.add_nodes_from(zip(range(len(points)), coords))
     n = len(points)
@@ -249,8 +249,8 @@ def get_bitonic_tour(points, q, iteration):
     total_weight_of_edges = 0.0
     for edge in bitonic_tour.edges:
         n1, n2 = edge
-        pt1 = bitonic_tour.nodes[n1]['coods'] 
-        pt2 = bitonic_tour.nodes[n2]['coods']
+        pt1 = bitonic_tour.nodes[n1]['pos'] 
+        pt2 = bitonic_tour.nodes[n2]['pos']
         edge_wt = np.linalg.norm(pt1-pt2)
         bitonic_tour.edges[n1,n2]['weight'] = edge_wt
         total_weight_of_edges = total_weight_of_edges + edge_wt 
@@ -309,10 +309,11 @@ def solve_tsp_from_file(fname):
 
 #### Concorde TSP for tour/path for any metric ####
 def get_tsp_graph(points, q, iteration, mode, metric='2'):
-    print("Working on TSP " + mode + ", numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Working on TSP " + mode + ", numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     points = np.array(points)
     n = len(points)
-    coords = [{"coods":pt} for pt in points]
+    coords = [{"pos":pt} for pt in points]
     tsp_graph = nx.Graph()
 
     cwd = os.getcwd()
@@ -354,14 +355,15 @@ def get_tsp_graph(points, q, iteration, mode, metric='2'):
     total_weight_of_edges = 0.0
     for edge in tsp_graph.edges:
         n1, n2 = edge
-        pt1 = tsp_graph.nodes[n1]['coods'] 
-        pt2 = tsp_graph.nodes[n2]['coods']
+        pt1 = tsp_graph.nodes[n1]['pos'] 
+        pt2 = tsp_graph.nodes[n2]['pos']
         edge_wt = np.linalg.norm(pt1-pt2)
         tsp_graph.edges[n1,n2]['weight'] = edge_wt
         total_weight_of_edges = total_weight_of_edges + edge_wt 
     tsp_graph.graph['weight'] = total_weight_of_edges
     tsp_graph.graph['type']   = 'concorde'
-    print("Finished computing TSP " + mode + ", numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Finished computing TSP " + mode + ", numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
 
     for file in os.listdir(os.getcwd()):
         os.remove(os.path.join(os.getcwd(), file))
@@ -383,7 +385,8 @@ def get_kdelaunay_graph(points, order, q, iteration):
         order (int): The order (k) of the graph to be computed.
     """
     assert (order >= 0) and isinstance(order, int)
-
+    print("Working on Order-" + str(order) + " Delaunay, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     # compute k_delaunay graph
     # see that we consider 0-Delaunay = (the standard) Delaunay,
     # whereas those who implemented OrderKDelaunay consider
@@ -406,12 +409,16 @@ def get_kdelaunay_graph(points, order, q, iteration):
 
     k_delaunay = nx.Graph()
     points = np.array(points)
+    n = len(points)
+    coords = [{"pos":pt} for pt in points]
+    k_delaunay.add_nodes_from(zip(range(len(points)), coords))
     edges = [
         (v, w, np.linalg.norm(points[v] - points[w]))
         for (v, w) in k_delaunay_edges
     ]
-
     k_delaunay.add_weighted_edges_from(edges)
+    print("Finished computing Order-" + str(order) + " Delaunay, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
 
     # multiprocessing
     q.put({iteration:k_delaunay})
