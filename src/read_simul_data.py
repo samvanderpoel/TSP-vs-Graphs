@@ -45,11 +45,12 @@ def read_simul_data(randtype, which_comps='all'):
     if not os.path.isdir(plotsdir):
         os.makedirs(plotsdir)
 
-    colors = {'20pt':'tab:orange', 'del':'m', 'gab':'g', 'path':'tab:brown',
-              '2nng':'c', 'urq':'k', 'mst':'b', '1nng':'r', 'bito':'y'}
+    colors = {'20pt':'tab:orange', 'del':'m', '1del':'tab:purple', '2del':'tab:pink', 'gab':'g',
+              'path':'tab:brown', '2nng':'c', 'urq':'k', 'mst':'b', '1nng':'r', 'bito':'y'}
     titles = {'tour':'TSP Tour', 'path':'TSP Path', 'bito':'Bitonic TSP Tour'}
-    labels = {'20pt':'20% NNG', 'del':'Delaunay', 'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG',
-              'urq':'Urquhart', 'mst':'MST', '1nng':'1-NNG', 'bito':'Bitonic TSP'}
+    labels = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay', '2del':'Order-2 Delaunay',
+              'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
+              '1nng':'1-NNG', 'bito':'Bitonic TSP'}
     sample = {'pts_uni':'Uniform on Unit Square',
               'pts_annulus':'Non-Random on Annulus',
               'pts_annulus_random': 'Uniform on Annulus',

@@ -1,3 +1,6 @@
+import os
+import sys
+import itertools as it
 import scipy as sp
 import numpy as np
 import networkx as nx
@@ -7,8 +10,7 @@ from sklearn.neighbors import NearestNeighbors # for KNNG
 from scipy.spatial import Delaunay # for Delaunay and Urquhart
 from scipy.spatial import Voronoi # for Gabriel
 from concorde.tsp import TSPSolver # for solve_tsp_from_file
-import os # for get_tsp_path
-import sys # for get_tsp_path
+from orderk_delaunay import *
 
 #### KNNG ####
 def get_knng_graph(points, q, iteration, k=1, metric=2):
@@ -367,3 +369,49 @@ def get_tsp_graph(points, q, iteration, mode, metric='2'):
 
     # multiprocessing:
     q.put({iteration:tsp_graph})
+
+#### Order-k Delaunay Graph ####
+def get_kdelaunay_graph(points, order, q, iteration):
+    """Returns the k-Delaunay graph.
+    The k-Delaunay graph (a.k.a., the order k Delaunay graph) contains an edge
+    ij if and only if there exists a disk containing i and j and at most k
+    additional points. See that the 0-Delaunay graph is the standard Delaunay
+    graph. Moreover, for any natural k, k-Delaunay \subseteq (k+1)-Delaunay.
+    Args:
+        points (list): List (len n) of lists (len 2) of floats representing
+          coordinates.
+        order (int): The order (k) of the graph to be computed.
+    """
+    assert (order >= 0) and isinstance(order, int)
+
+    # compute k_delaunay graph
+    # see that we consider 0-Delaunay = (the standard) Delaunay,
+    # whereas those who implemented OrderKDelaunay consider
+    # 1-Delaunay = Delaunay. As such, we increment the order to match the
+    # OrderKDelaunay software's convention.
+    k_delaunay = OrderKDelaunay(points, order + 1)
+    k_delaunay_edges = []
+
+    # vertex sets on which cliques exist
+    vertex_idxs = [
+        set(np.array(cell_list).flatten())
+        for cell_list in k_delaunay.diagrams_cells[-1]
+    ]
+
+    for clique_idxs in vertex_idxs:
+        for pair in it.combinations(clique_idxs, 2):
+            k_delaunay_edges.append(list(pair))
+
+    k_delaunay_edges = set([tuple(sorted(edge)) for edge in k_delaunay_edges])
+
+    k_delaunay = nx.Graph()
+    points = np.array(points)
+    edges = [
+        (v, w, np.linalg.norm(points[v] - points[w]))
+        for (v, w) in k_delaunay_edges
+    ]
+
+    k_delaunay.add_weighted_edges_from(edges)
+
+    # multiprocessing
+    q.put({iteration:k_delaunay})

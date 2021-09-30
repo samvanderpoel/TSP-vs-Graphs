@@ -8,7 +8,7 @@ import os
 import time
 
 from graphfuncs import *
-from utilfuncs import *
+from utils import *
 from point_distributions import *
 
 """
@@ -18,10 +18,11 @@ Graphs with major_id include:
     - TSP path:     'path'
     - Bitonic TSP:  'bito'
 Graphs with minor_id include:
-    - 1-NNG:        '1nng'          - Gabriel:      'gab'   
-    - 2-NNG:        '2nng'          - Urquhart:     'urq'
-    - 20%-NNG:      '20pt'          - Delaunay:     'del'
-    - MST:          'mst'           - Bitonic TSP:  'bito'
+    - 1-NNG:          '1nng'          - Gabriel:        'gab'   
+    - 2-NNG:          '2nng'          - Urquhart:       'urq'
+    - 20%-NNG:        '20pt'          - Delaunay:       'del'
+    - MST:            'mst'           - Bitonic TSP:    'bito'
+    - Order-1 Del.:   '1del'          - Order-2 Del.:   '2del'
 A graph having major_id means that other graphs are being
 compared against it.
 """
@@ -68,6 +69,8 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps)
                      'gab':get_gabriel_graph,
                      'urq':get_urquhart_graph,
                      'del':get_delaunay_tri_graph,
+                     '1del':functools.partial(get_kdelaunay_graph, order=1),
+                     '2del':functools.partial(get_kdelaunay_graph, order=2),
                      'bito':get_bitonic_tour,
                      'path':functools.partial(get_tsp_graph, mode='path', metric='2'),
                      'tour':functools.partial(get_tsp_graph, mode='tour', metric='2')}
@@ -197,17 +200,18 @@ parser.add_argument('--interval', type=int, required=True)
 parser.add_argument('--numrunsper', type=int, required=True)
 parser.add_argument('--batch', type=int, required=True)
 parser.add_argument('--randtype', type=str, required=True)
-minpts     = parser.parse_args().minpts
-maxpts     = parser.parse_args().maxpts
-interval   = parser.parse_args().interval
-batch      = parser.parse_args().batch
-numrunsper = parser.parse_args().numrunsper
-randtype   = parser.parse_args().randtype
+args = parser.parse_args()
+minpts     = args.minpts
+maxpts     = args.maxpts
+interval   = args.interval
+batch      = args.batch
+numrunsper = args.numrunsper
+randtype   = args.randtype
 
-all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', 'bito', 'path'],
-             'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del'],
-             'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del']}
-which_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', 'path'],
-               'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del']}
+all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'bito', 'path'],
+             'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del'],
+             'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}
+which_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'path'],
+               'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}
 simulate(minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
          batch=batch, randtype=randtype, which_comps=all_comps)
