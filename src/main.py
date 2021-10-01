@@ -2,7 +2,6 @@ import functools
 from multiprocessing import Process, Queue, Manager
 import numpy as np
 import networkx as nx
-
 import argparse
 import os
 import time
@@ -13,7 +12,7 @@ from utils import *
 from point_distributions import *
 
 """
-Graphs are classified with either a major_id or minor_id.
+Graphs are classified with a major_id or minor_id.
 Graphs with major_id include:
     - TSP tour:     'tour'
     - TSP path:     'path'
@@ -71,7 +70,6 @@ def compare(d, comp, g1, g2, div, anomalies, dirname):
         if comp in anomalies and common < anomalies[comp]:
             graph_to_yaml(g1[i], comp, dirname)
     d[comp] = new_data
-
     #print('Finished comparison: ' + comp)
 
 def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps, anomalies={}):
@@ -93,7 +91,7 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
             specified fraction
     """
     start_time = time.time()
-    
+
     # gather comparison specifications from user
     comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
     allgraphfuncs = {'1nng':functools.partial(get_knng_graph, k=1, metric=2),
