@@ -8,8 +8,47 @@ def num_common_edges(g1, g2):
             num_common += 1
     return num_common
 
-def graphs_intersect_p(g1,g2):
-    flag = False
-    if list_common_edges(g1,g2):     
-        flag = True 
-    return flag
+def graph_to_yaml(graph, comp, dirname):
+    """
+    Writes the coordinates of a nx graph to a yaml file.
+        graph:
+            nx graph
+        comp:
+            comparison id, of the form 'majorid_minorid'
+        dirname:
+            dir in which to create anomalies folder and write yaml files
+    """
+    points = [graph.nodes[node]["pos"] for node in list(graph.nodes)]
+    n = len(points)
+    anom_dir = os.path.join(dirname, 'anomalies/' + comp)
+    if not os.path.isdir(anom_dir):
+        os.makedirs(anom_dir)
+    timenow = str(datetime.datetime.now()).replace('-','').replace(' ','').replace(':','').replace('.','')
+    filepath = os.path.join(anom_dir, str(n) + '_' + timenow + '.yaml')
+    with open(filepath, 'w+') as file:
+        file.write('points:\n')
+        for point in points:
+            file.write('  - [{a},{b}]\n'.format(a=point[0], b=point[1]))
+
+def compare(d, comp, g1, g2, div, anomalies, dirname):
+    """
+    Compares two dictionaries g1, g2 of graphs indexed by iteration
+        d:
+            dictionary that stores graph intersection data by comparison type
+        comp:
+            string of the form 'majorid_minorid'
+        g1, g2:
+            dictionaries of graphs indexed by iteration
+        div:
+            n or n-1, depending whether g1 contains paths or cycles
+    """
+    #print('Working on comparison: ' + comp)
+    n = len(g1)
+    new_data = []
+    for i in range(n):
+        common = num_common_edges(g1[i], g2[i]) / div
+        new_data += [common]
+        if comp in anomalies and common < anomalies[comp]:
+            graph_to_yaml(g1[i], comp, dirname)
+    d[comp] = new_data
+    #print('Finished comparison: ' + comp)
