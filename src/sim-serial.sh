@@ -6,7 +6,7 @@ mkdir tour-wds
 mkdir path-wds
 
 for type in ${PT_CLOUD_TYPES[@]}; do
-    python src/main.py --minpts=10 --maxpts=110 --interval=50 --numrunsper=50 --batch=50 --randtype="${type}"
+    python src/main.py --minpts=10 --maxpts=1360 --interval=50 --numrunsper=50 --batch=50 --randtype="${type}"
     python src/read_simul_data.py --randtype="${type}"
 done
 
