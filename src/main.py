@@ -47,22 +47,6 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
     """
     start_time = time.time()
 
-    # gather comparison specifications from user
-    comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
-    allgraphfuncs = {'1nng':functools.partial(get_knng_graph, k=1, metric=2),
-                     '2nng':functools.partial(get_knng_graph, k=2, metric=2),
-                     '20pt':functools.partial(get_pctnng_graph, pct=0.20, metric=2),
-                     'mst':get_mst_graph,
-                     'gab':get_gabriel_graph,
-                     'urq':get_urquhart_graph,
-                     'del':get_delaunay_tri_graph,
-                     '1del':functools.partial(get_kdelaunay_graph, order=1),
-                     '2del':functools.partial(get_kdelaunay_graph, order=2),
-                     'bito':get_bitonic_tour,
-                     'path':functools.partial(get_tsp_graph, mode='path', metric='2'),
-                     'tour':functools.partial(get_tsp_graph, mode='tour', metric='2')}
-    graphs_to_compute = set(which_comps.keys()) | set(graphid for v in which_comps.values() for graphid in v)
-
     # create directory to output results
     dirnames = {'pts_uni':'uniform-sqr',
                 'pts_annulus':'annulus',
@@ -75,11 +59,28 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
                 'pts_normal':'normal-bivar',
                 'pts_spokes':'spokes',
                 'pts_concentric_circular_points':'concen-circ'}
-    dirname = dirnames[randtype] + "-results"
+    randname = dirnames[randtype]
+    dirname = randname + "-results"
     cwd = os.getcwd()
     randdir = os.path.join(cwd, "results/" + dirname)
     if not os.path.isdir(randdir):
         os.makedirs(randdir)
+
+    # gather comparison specifications from user
+    comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
+    allgraphfuncs = {'1nng':functools.partial(get_knng_graph, k=1, metric=2),
+                     '2nng':functools.partial(get_knng_graph, k=2, metric=2),
+                     '20pt':functools.partial(get_pctnng_graph, pct=0.20, metric=2),
+                     'mst':get_mst_graph,
+                     'gab':get_gabriel_graph,
+                     'urq':get_urquhart_graph,
+                     'del':get_delaunay_tri_graph,
+                     '1del':functools.partial(get_kdelaunay_graph, order=1),
+                     '2del':functools.partial(get_kdelaunay_graph, order=2),
+                     'bito':get_bitonic_tour,
+                     'path':functools.partial(get_tsp_graph, mode='path', randname=randname, metric='2'),
+                     'tour':functools.partial(get_tsp_graph, mode='tour', randname=randname, metric='2')}
+    graphs_to_compute = set(which_comps.keys()) | set(graphid for v in which_comps.values() for graphid in v)
 
     # determine the batch sizes that will be computed
     numruns, rem = divmod(numrunsper, batch)
@@ -164,18 +165,24 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
 
     # remove tour-wds and path-wds directories, which were created by get_tsp_graph
     cwd = os.getcwd()
-    if os.path.isdir(os.path.join(cwd, "tour-wds/")):
+    if os.path.isdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/")):
+        for item in os.listdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/")):
+            try:
+                os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/" + item))
+            except:
+                pass
         try:
-            for item in os.listdir(os.path.join(cwd, "tour-wds/")):
-                os.rmdir(os.path.join(cwd, "tour-wds/" + item))
-            os.rmdir(os.path.join(cwd, "tour-wds/"))
+            os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/"))
         except:
             pass
-    if os.path.isdir(os.path.join(cwd, "path-wds/")):
+    if os.path.isdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/")):
+        for item in os.listdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/")):
+            try:
+                os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/" + item))
+            except:
+                pass
         try:
-            for item in os.listdir(os.path.join(cwd, "path-wds/")):
-                os.rmdir(os.path.join(cwd, "path-wds/" + item))
-            os.rmdir(os.path.join(cwd, "path-wds/"))
+            os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/"))
         except:
             pass
 
@@ -195,6 +202,15 @@ interval   = args.interval
 batch      = args.batch
 numrunsper = args.numrunsper
 randtype   = args.randtype
+
+# args = sys.stdin.read().split(' ')
+# print(args)
+# minpts     = int(args[0])
+# maxpts     = int(args[1])
+# interval   = int(args[3])
+# batch      = int(args[2])
+# numrunsper = int(args[4])
+# randtype   = args[5][:-1]
 
 all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'bito', 'path'],
              'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del'],
