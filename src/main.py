@@ -203,15 +203,6 @@ batch      = args.batch
 numrunsper = args.numrunsper
 randtype   = args.randtype
 
-# args = sys.stdin.read().split(' ')
-# print(args)
-# minpts     = int(args[0])
-# maxpts     = int(args[1])
-# interval   = int(args[3])
-# batch      = int(args[2])
-# numrunsper = int(args[4])
-# randtype   = args[5][:-1]
-
 all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'bito', 'path'],
              'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del'],
              'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}

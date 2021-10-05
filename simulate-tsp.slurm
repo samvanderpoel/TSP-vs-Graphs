@@ -11,6 +11,7 @@
 #SBATCH --mail-user=sam.vanderpoel@stonybrook.edu
 
 module load shared
+module load gnu-parallel
 module load anaconda/3
 
-bash src/simulate.sh
+bash src/sim-parallel.sh &>/dev/null

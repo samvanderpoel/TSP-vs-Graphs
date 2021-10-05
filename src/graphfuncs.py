@@ -11,6 +11,7 @@ from scipy.spatial import Delaunay # for Delaunay and Urquhart
 from scipy.spatial import Voronoi # for Gabriel
 from concorde.tsp import TSPSolver # for solve_tsp_from_file
 from orderk_delaunay import *
+from utils import *
 
 #### KNNG ####
 def get_knng_graph(points, q, iteration, k=1, metric=2):
@@ -135,16 +136,10 @@ def get_mst_graph(points, q, iteration):
 #### Gabriel ####
 def get_gabriel_graph(points, q, iteration):
     print("Working on Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    def ccw(A,B,C):
-        return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
-    def intersect(A,B,C,D):
-        return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
-    
     points = np.array(points)
     coords = [{"pos":pt} for pt in points]
     gabriel = nx.Graph()
     gabriel.add_nodes_from(zip(range(len(points)), coords))
-
     vor = Voronoi(points)
     center = vor.points.mean(axis=0)
     

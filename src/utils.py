@@ -1,6 +1,12 @@
 import numpy as np
 import networkx as nx
 
+def ccw(A,B,C):
+    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
+
+def intersect(A,B,C,D):
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
 def num_common_edges(g1, g2):
     num_common = 0
     for e in g2.edges():
