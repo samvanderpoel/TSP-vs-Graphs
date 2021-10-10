@@ -3,18 +3,22 @@
 This repository is part of ongoing research together with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
 [Gaurish Telang](https://github.com/gtelang).
 
-SimulateTSP provides functions to explore the statistical intersection behavior between traveling salesman problem (TSP) solutions 
-and various proximity graphs through precisely tunable simulations. _TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. 
-Proximity graphs of interest include:
+SimulateTSP provides functions to explore the statistical intersection behavior of traveling salesman problem (TSP) solutions 
+and various proximity graphs through precisely tunable simulations. _TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
 - k-nearest neighbor graphs (primarily k=1, 2, 0.2n)
 - Minimum spanning tree (MST)
 - Gabriel graph
 - Urquhart graph
 - Order-k Delaunay (primarily k=0, 1, 2; where k=0 coincides with the Delaunay triangulation)
 
+Some motivating questions are:
+- What fraction of TSP edges tend to be NNG (or MST, Gabriel, etc.) edges?
+- Must the TSP contain at least one NNG (or MST, Gabriel, etc.) edge?
+- What is the probability that the TSP is a subset of the order-k Delaunay?
+
 # Setup
 ## Virtual environment
-Create an [Anaconda](https://www.anaconda.com) environment with the necessary dependencies:
+Create an [Anaconda](https://www.anaconda.com) environment with the necessary libraries:
 ```
 conda create --name tsp python=3.7.3 pip
 conda activate tsp
