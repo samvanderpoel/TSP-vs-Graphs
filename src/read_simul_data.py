@@ -80,8 +80,10 @@ def read_simul_data(randtype, which_comps='all'):
             comp_means = np.asarray([np.mean(data[comp][key]) for key in xvals])
             comp_stdvs = np.asarray([np.std(data[comp][key]) for key in xvals])
             ax.plot(xvals, comp_means, 'o-', markersize=3, label=labels[minor_id], color=colors[minor_id])
-            ax.fill_between(xvals, comp_means-comp_stdvs, \
-                            comp_means+comp_stdvs ,  color=colors[minor_id], alpha=0.3)
+            ax.fill_between(xvals, \
+                            np.clip(comp_means-comp_stdvs, 0, 1), \
+                            np.clip(comp_means+comp_stdvs, 0, 1), \
+                            color=colors[minor_id], alpha=0.3)
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         ax.grid(color='gray',linestyle='--',linewidth=0.5)
         fig.savefig(plotsdir + '/' + randtype + '_' + major_id + '_vs_graphs.pdf', format='pdf', bbox_inches='tight', dpi=500)

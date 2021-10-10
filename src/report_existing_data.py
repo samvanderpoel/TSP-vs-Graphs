@@ -27,7 +27,7 @@ dirnames = [name + '-results' for name in types]
 labels = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay', '2del':'Order-2 Delaunay',
           'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
           '1nng':'1-NNG', 'bito':'Bitonic TSP', 'tour':'TSP Tour', 'path':'TSP Path'}
-results = [['cloud_type', 'majorid', 'minorid', 'min', 'pct25', 'median', 'pct75', 'max', 'subset']]
+results = [['cloud_type', 'majorid', 'minorid', 'minpts', 'maxpts', 'min', 'pct25', 'median', 'mean', 'pct75', 'max', 'subset']]
 
 for item in contents:
     itempath = os.path.join(cwd, 'results/' + item)
@@ -41,20 +41,27 @@ for item in contents:
                 major_name, minor_name = labels[majorid], labels[minorid]
                 print(colored(major_name + ' vs. ' + minor_name + ' comparisons:', 'red'))
                 all_data = np.array([frac for _, data in v.items() for frac in data])
+                numtot  = len(all_data)
+                minpts  = min([num for num, data in v.items()])
+                maxpts  = max([num for num, data in v.items()])
                 minimum = round(np.percentile(all_data, 0), 3)
                 pct25   = round(np.percentile(all_data, 25), 3)
                 median  = round(np.percentile(all_data, 50), 3)
+                ave     = round(np.mean(all_data), 3)
                 pct75   = round(np.percentile(all_data, 75), 3)
                 maximum = round(np.percentile(all_data, 100), 3)
-                print('min\t25\tmed\t75\tmax')
+                print('min\t25\tmed\tmean\t75\tmax')
                 print(str(minimum) + '\t' + \
                       str(pct25)   + '\t' + \
                       str(median)  + '\t' + \
+                      str(ave)     + '\t' + \
                       str(pct75)   + '\t' + \
                       str(maximum))
                 subset = round(np.mean(all_data==1), 3)
-                print('Fraction of point clouds whose intersection is 100%: ' + str(subset))
-                new_result = [item[:-8], majorid, minorid, minimum, pct25, median, pct75, maximum, subset]
+                print('Total number of point clouds simulated: ' + colored(str(numtot), 'yellow'))
+                print('Range of point cloud sizes: ' + colored(str(minpts) + ' to ' + str(maxpts), 'yellow'))
+                print('Fraction of point clouds whose intersection is 100%: ' + colored(str(subset), 'yellow'))
+                new_result = [item[:-8], majorid, minorid, minpts, maxpts, minimum, pct25, median, ave, pct75, maximum, subset]
                 results.append(new_result)
                 if not summary:
                     for num, data in v.items():
