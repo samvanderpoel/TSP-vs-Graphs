@@ -13,46 +13,18 @@ from concorde.tsp import TSPSolver # for solve_tsp_from_file
 from orderk_delaunay import *
 from utils import *
 
-#### KNNG ####
-def get_knng_graph(points, q, iteration, k=1, metric=2):
-    print("Working on " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    points     = np.array(points)
-    coords     = [{"pos":pt} for pt in points]
-    knng_graph = nx.Graph()
-    knng_graph.add_nodes_from(zip(range(len(points)), coords))
-    if metric=='inf':
-        nbrs = NearestNeighbors(n_neighbors=(k+1),
-                                algorithm='ball_tree',
-                                metric='chebyshev').fit(points)
-    else:
-        nbrs = NearestNeighbors(n_neighbors=(k+1),
-                                algorithm='ball_tree',
-                                metric='minkowski',
-                                p=int(metric)).fit(points)
-    distances, indices = nbrs.kneighbors(points)
-    edge_list = []
-
-    for nbidxs in indices:
-        nfix = nbidxs[0]
-        edge_list.extend([(nfix,nvar) for nvar in nbidxs[1:]])
-
-    knng_graph.add_edges_from(  edge_list  )
-    knng_graph.graph['type']   = str(k)+'nng'
-    knng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
-    print("Finished computing " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-
-    # multiprocessing:
-    q.put({iteration:knng_graph})
-
-#### PCTNNG ####
-def get_pctnng_graph(points, q, iteration, pct=0.20, metric=2):
-    print("Working on " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    points     = np.array(points)
+#### NNG ####
+def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     n = len(points)
-    k = math.ceil(pct * n)
+    if pct is not None:
+        print("Working on " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        k = math.ceil(pct * n)
+    else:
+        print("Working on " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    points     = np.array(points)
     coords     = [{"pos":pt} for pt in points]
-    pctnng_graph = nx.Graph()
-    pctnng_graph.add_nodes_from(zip(range(len(points)), coords))
+    nng_graph = nx.Graph()
+    nng_graph.add_nodes_from(zip(range(len(points)), coords))
     if metric=='inf':
         nbrs = NearestNeighbors(n_neighbors=(k+1),
                                 algorithm='ball_tree',
@@ -69,13 +41,18 @@ def get_pctnng_graph(points, q, iteration, pct=0.20, metric=2):
         nfix = nbidxs[0]
         edge_list.extend([(nfix,nvar) for nvar in nbidxs[1:]])
 
-    pctnng_graph.add_edges_from(  edge_list  )
-    pctnng_graph.graph['type']   = str(100*pct)+'-pct-nng'
-    pctnng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
-    print("Finished computing " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    
+    nng_graph.add_edges_from(edge_list)
+    if pct is not None:
+        nng_graph.graph['type']   = str(100*pct)+'-pct-nng'
+        nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
+        print("Finished computing " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    else:
+        nng_graph.graph['type']   = str(k)+'nng'
+        nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
+        print("Finished computing " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+
     # multiprocessing:
-    q.put({iteration:pctnng_graph})
+    q.put({iteration:nng_graph})
 
 #### Delaunay Triangulation ####
 def get_delaunay_tri_graph(points, q, iteration):

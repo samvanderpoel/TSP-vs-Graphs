@@ -68,9 +68,9 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
 
     # gather comparison specifications from user
     comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
-    allgraphfuncs = {'1nng':functools.partial(get_knng_graph, k=1, metric=2),
-                     '2nng':functools.partial(get_knng_graph, k=2, metric=2),
-                     '20pt':functools.partial(get_pctnng_graph, pct=0.20, metric=2),
+    allgraphfuncs = {'1nng':functools.partial(get_nng_graph, k=1, metric=2),
+                     '2nng':functools.partial(get_nng_graph, k=2, metric=2),
+                     '20pt':functools.partial(get_nng_graph, pct=0.20, metric=2),
                      'mst':get_mst_graph,
                      'gab':get_gabriel_graph,
                      'urq':get_urquhart_graph,
