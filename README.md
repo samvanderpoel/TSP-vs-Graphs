@@ -3,7 +3,7 @@
 This repository is part of ongoing research together with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
 [Gaurish Telang](https://github.com/gtelang).
 
-SimulateTSP provides functions to explore the statistical intersection behavior of traveling salesman problem (TSP) solutions 
+SimulateTSP provides functions to explore the intersection behavior of traveling salesman problem (TSP) solutions 
 and various proximity graphs through precisely tunable simulations. _TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
 - k-nearest neighbor graphs (primarily k=1, 2, 0.2n)
 - Minimum spanning tree (MST)
