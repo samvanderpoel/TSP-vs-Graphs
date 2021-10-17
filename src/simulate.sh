@@ -12,8 +12,8 @@
 #                           pts_grid        pts_cubediam    pts_concentric_circular_points
 # tour, path, bito:     which comparisons to make between graphs
 # anoms:                anomalies to check for and record
-# parallel:             true/false, should cloudtypes be simulated concurrently
-# concurrently:         if parallel is true, how many to simulate concurrently
+# par:                  true/false, should cloudtypes be simulated concurrently
+# concurrently:         if par is true, how many to simulate concurrently
 
 minpts=10
 maxpts=60
@@ -26,13 +26,13 @@ path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
 bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
 comps=$tour$path$bito
 anoms="{'tour_2del':'<1','path_2del':'<1','path_mst':'==1'}"
-parallel=true
+par=true
 concurrently=2
 
 mkdir tour-wds
 mkdir path-wds
 
-if [ $parallel = true ] ; then
+if [ $par = true ] ; then
     for type in ${cloudtypes[@]}; do
         echo "python src/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval --numrunsper=$numrunsper --batch=$batch --randtype=$type --comps=\"$comps\" --anoms=\"$anoms\"" >> src/args.txt
     done
@@ -44,7 +44,7 @@ if [ $parallel = true ] ; then
     done
     parallel -j ${#cloudtypes[@]} < src/args.txt
     rm src/args.txt
-elif [ $parallel = false ] ; then
+elif [ $par = false ] ; then
     for type in ${cloudtypes[@]}; do
         python src/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
             --numrunsper=$numrunsper --batch=$batch --randtype="$type" \
