@@ -45,5 +45,5 @@ The main simulation is executed with `bash src/simulate.sh`. All simulation para
 - `cloudtypes` lists the point cloud types to sample from (options listed in src/simulate.sh)
 - `tour`, `path`, and `bito` list the specific comparisons to make between graphs. Graphs are specified by major_id and minor_id, as described at the top of src/main.py
 - `anoms` specifies which 'anomalies' to check for and record (if found). For example, "{'tour_2del':'<1','path_mst':'==1'}" checks for: point clouds whose TSP tours are not a subset of the order-1 Delaunay; and point clouds whose TSP paths are a subset of the MST.
-- `par` specifies whether point clouds _types_ should be simulated in parallel (requires GNU's `parallel`).
+- `par` specifies whether point cloud _types_ should be simulated in parallel (requires GNU's `parallel`).
 - `concurrently` specifies number of point cloud types to simulate concurrently (if `par` is true)
