@@ -14,4 +14,4 @@ module load shared
 module load gnu-parallel
 module load anaconda/3
 
-bash src/sim-parallel.sh &>/dev/null
+bash src/simulate.sh
