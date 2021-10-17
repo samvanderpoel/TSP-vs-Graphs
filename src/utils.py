@@ -1,5 +1,7 @@
 import numpy as np
 import networkx as nx
+import os
+import datetime
 
 def ccw(A,B,C):
     return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
@@ -54,7 +56,9 @@ def compare(d, comp, g1, g2, div, anomalies, dirname):
     for i in range(n):
         common = num_common_edges(g1[i], g2[i]) / div
         new_data += [common]
-        if comp in anomalies and common < anomalies[comp]:
-            graph_to_yaml(g1[i], comp, dirname)
+        if comp in anomalies:
+            criterion = eval("common" + anomalies[comp])
+            if criterion:
+                graph_to_yaml(g1[i], comp, dirname)
     d[comp] = new_data
     #print('Finished comparison: ' + comp)

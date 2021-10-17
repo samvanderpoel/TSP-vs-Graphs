@@ -195,6 +195,8 @@ parser.add_argument('--interval', type=int, required=True)
 parser.add_argument('--numrunsper', type=int, required=True)
 parser.add_argument('--batch', type=int, required=True)
 parser.add_argument('--randtype', type=str, required=True)
+parser.add_argument('--comps', type=str, required=True)
+parser.add_argument('--anoms', type=str, required=True)
 args = parser.parse_args()
 minpts     = args.minpts
 maxpts     = args.maxpts
@@ -202,12 +204,8 @@ interval   = args.interval
 batch      = args.batch
 numrunsper = args.numrunsper
 randtype   = args.randtype
+comps      = eval(args.comps)
+anoms      = eval(args.anoms)
 
-all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del', 'bito', 'path'],
-             'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del'],
-             'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', '1del', '2del']}
-which_comps = {'tour':['2del'],
-               'path':['2del']}
-anomalies = {'tour_2del':1, 'path_2del':1}
 simulate(minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
-         batch=batch, randtype=randtype, which_comps=all_comps, anomalies={})
+         batch=batch, randtype=randtype, which_comps=comps, anomalies=anoms)
