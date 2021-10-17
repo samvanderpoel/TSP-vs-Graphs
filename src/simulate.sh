@@ -46,8 +46,8 @@ if [ $parallel = true ] ; then
     rm src/args.txt
 elif [ $parallel = false ] ; then
     for type in ${cloudtypes[@]}; do
-        python src/main.py --minpts=${minpts} --maxpts=${maxpts} --interval=${interval} \
-            --numrunsper=${numrunsper} --batch=${batch} --randtype="${type}" \
+        python src/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
+            --numrunsper=$numrunsper --batch=$batch --randtype="$type" \
             --comps=${comps} --anoms=${anoms}
         python src/read_simul_data.py --randtype="${type}"
     done
