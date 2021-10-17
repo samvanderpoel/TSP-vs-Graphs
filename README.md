@@ -1,5 +1,4 @@
 # SimulateTSP
-
 This repository is part of ongoing research together with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
 [Gaurish Telang](https://github.com/gtelang).
 
@@ -31,12 +30,20 @@ cd pyconcorde
 pip install -e .
 cd ..
 ```
+[GNU Parallel](https://www.gnu.org/software/parallel/) is also required for this repository.
 
 ## Test program
-
 A small test simulation can be executed with `bash test.sh`, the results of which will be stored in results/uniform-sqr-results.
 
 # Main simulation
-
-The main simulation programs are executed with `bash src/sim-serial.sh` (which simulates point cloud distributions serially) or `bash src/sim-parallel.sh`, 
-(which simulates point cloud distributions in parallel). To specify the exact graphs to compute and graph comparisons to make, modify the bottom of src/main.py.
+The main simulation is executed with `bash src/simulate.sh`. All simulation parameters are specific at the top of src/simulate.sh.
+## Simulation parameters
+- `minpts` and `maxpts` delineate the min and max point cloud sizes to simulate
+- `interval` specifies the spacing between consecutive point cloud sizes
+- `numrunsper` specifies how many point clouds to simulate per point cloud size
+- `batch` specifies the number of point clouds to simulate concurrently
+- `cloudtypes` lists the point cloud types to sample from (options listed in src/simulate.sh)
+- `tour`, `path`, and `bito` list the specific comparisons to make between graphs. Graphs are specified by major_id and minor_id, as described at the top of src/main.py
+- `anoms` specifies which 'anomalies' to check for and record (if found). For example, "{'tour_2del':'<1','path_mst':'==1'}" checks for: point clouds whose TSP tours are not a subset of the order-1 Delaunay; and point clouds whose TSP paths are a subset of the MST.
+- `par` specifies whether point clouds should be simulated in parallel (requires GNU's `parallel`).
+- `concurrently` specifies number of point cloud types to simulate concurrently (if `par` is true)
