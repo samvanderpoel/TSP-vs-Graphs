@@ -16,7 +16,7 @@
 # concurrently:         if par is true, how many to simulate concurrently
 
 minpts=10
-maxpts=60
+maxpts=90
 interval=10
 numrunsper=20
 batch=20
@@ -34,11 +34,13 @@ mkdir path-wds
 
 if [ $par = true ] ; then
     for type in ${cloudtypes[@]}; do
-        echo "python src/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval --numrunsper=$numrunsper --batch=$batch --randtype=$type --comps=\"$comps\" --anoms=\"$anoms\"" >> src/args.txt
+        a="python src/main.py --minpts=$minpts --maxpts=$maxpts "
+        b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
+        c="--randtype=$type --comps=\"$comps\" --anoms=\"$anoms\""
+        echo $a$b$c >> src/args.txt
     done
     parallel -j $concurrently < src/args.txt &>/dev/null
     rm src/args.txt
-
     for type in ${cloudtypes[@]}; do
         echo "python src/read_simul_data.py --randtype=${type}" >> src/args.txt
     done
