@@ -1,5 +1,5 @@
 # SimulateTSP
-This repository is part of ongoing research together with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
+This repository is part of ongoing research with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
 [Gaurish Telang](https://github.com/gtelang).
 
 SimulateTSP provides functions to explore the intersection behavior of traveling salesman problem (TSP) solutions 
