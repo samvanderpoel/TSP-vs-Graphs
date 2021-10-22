@@ -5,7 +5,11 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--randtype', type=str, required=True)
+parser.add_argument('--mi', type=int, required=False)
+parser.add_argument('--ma', type=int, required=False)
+parser.set_defaults(mi=0, ma=1000000)
 randtype = parser.parse_args().randtype
+mi, ma = parser.parse_args().mi, parser.parse_args().ma
 
 dirnames = {'pts_uni':'uniform-sqr',
             'pts_annulus':'annulus',
@@ -69,14 +73,15 @@ def read_simul_data(randtype, which_comps='all'):
                       "Proximity Graphs\nSampling Type: " + sample[randtype],
                       fontdict={'fontsize':14})
         all_numpts = [num for comp in all_comps for num in data[comp].keys()]
-        min_tour, max_tour = min(all_numpts), max(all_numpts)
-        ax.set_xlim([min_tour-10,max_tour+10])
+        minpts = max(mi, min(all_numpts)) if mi is not None else min(all_numpts)
+        maxpts = min(ma, max(all_numpts)) if ma is not None else max(all_numpts)
+        ax.set_xlim([minpts-10,maxpts+10])
         ax.set_ylim([0,1.1])
         ax.set_xlabel("Number of points in point cloud")
         ax.set_ylabel("Fraction")
         for comp in all_comps:
             major_id, minor_id = comp.split('_')
-            xvals = sorted(data[comp])
+            xvals = sorted(val for val in data[comp] if minpts <= val <= maxpts)
             comp_means = np.asarray([np.mean(data[comp][key]) for key in xvals])
             comp_stdvs = np.asarray([np.std(data[comp][key]) for key in xvals])
             ax.plot(xvals, comp_means, 'o-', markersize=3, label=labels[minor_id], color=colors[minor_id])
