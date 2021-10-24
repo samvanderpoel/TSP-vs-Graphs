@@ -26,7 +26,7 @@ path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
 bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
 comps=$tour$path$bito
 anoms="{'tour_2del':'<1','path_2del':'<1','path_mst':'==1'}"
-par=true
+par=false
 concurrently=2
 
 mkdir tour-wds

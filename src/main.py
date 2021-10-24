@@ -4,6 +4,7 @@ import numpy as np
 import networkx as nx
 import argparse
 import os
+import re
 import time
 import datetime
 
@@ -68,19 +69,20 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
 
     # gather comparison specifications from user
     comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
-    allgraphfuncs = {'1nng':functools.partial(get_nng_graph, k=1, metric=2),
-                     '2nng':functools.partial(get_nng_graph, k=2, metric=2),
-                     '20pt':functools.partial(get_nng_graph, pct=0.20, metric=2),
-                     'mst':get_mst_graph,
-                     'gab':get_gabriel_graph,
-                     'urq':get_urquhart_graph,
-                     'del':get_delaunay_tri_graph,
-                     '1del':functools.partial(get_kdelaunay_graph, order=1),
-                     '2del':functools.partial(get_kdelaunay_graph, order=2),
-                     'bito':get_bitonic_tour,
-                     'path':functools.partial(get_tsp_graph, mode='path', randname=randname, metric='2'),
-                     'tour':functools.partial(get_tsp_graph, mode='tour', randname=randname, metric='2')}
     graphs_to_compute = set(which_comps.keys()) | set(graphid for v in which_comps.values() for graphid in v)
+    kdelafuncs = {g:functools.partial(get_kdelaunay_graph, order=int(g[:-3])) \
+                  for g in graphs_to_compute if re.match("[0-9]+del", g)}
+    knngsfuncs = {g:functools.partial(get_nng_graph, k=int(g[:-3]), metric=2) \
+                  for g in graphs_to_compute if re.match("[0-9]+nng", g)}
+    graphfuncs = {'20pt':functools.partial(get_nng_graph, pct=0.20, metric=2),
+                  'mst':get_mst_graph,
+                  'gab':get_gabriel_graph,
+                  'urq':get_urquhart_graph,
+                  'del':get_delaunay_tri_graph,
+                  'bito':get_bitonic_tour,
+                  'path':functools.partial(get_tsp_graph, mode='path', randname=randname, metric='2'),
+                  'tour':functools.partial(get_tsp_graph, mode='tour', randname=randname, metric='2')}
+    allgraphfuncs = {**kdelafuncs, **knngsfuncs, **graphfuncs}
 
     # determine the batch sizes that will be computed
     numruns, rem = divmod(numrunsper, batch)
