@@ -88,7 +88,7 @@ def run_handler(points=[]):
     ax.set_xticks([])
     ax.set_yticks([])
  
-    patchSize  = (xlim[1]-xlim[0])/130.0
+    patchSize  = (xlim[1]-xlim[0])/180.0
 
     for pt in run.points:
         ax.add_patch(mpl.patches.Circle(pt, radius = patchSize,
@@ -118,7 +118,7 @@ def wrapperEnterRunPointsHandler(fig, ax, run):
             run.points.append( newPoint  )
             print("You inserted ", newPoint)
 
-            patchSize  = (xlim[1]-xlim[0])/130.0
+            patchSize  = (xlim[1]-xlim[0])/180.0
                    
             ax.clear()
 
@@ -160,7 +160,7 @@ def wrapperkeyPressHandler(fig,ax, run):
             else:
                 print("I did not understand that option. Please type one of `n`, `u`, `m`, `o`, `g`")
 
-            patchSize  = (xlim[1]-xlim[0])/200
+            patchSize  = (xlim[1]-xlim[0])/180
 
             for site in run.points:      
                 ax.add_patch(mpl.patches.Circle(site, radius = patchSize, \
@@ -381,7 +381,7 @@ def render_graph(G,fig,ax):
 
         polygon = Polygon(node_coods, closed=True, alpha=0.40, \
                           facecolor=(72/255,209/255,204/255,0.4), \
-                          edgecolor='k', linewidth=0.5)
+                          edgecolor='k', linewidth=0.4)
         ax.add_patch(polygon)
 
     ax.axis('off') # turn off box surrounding plot
