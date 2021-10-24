@@ -34,7 +34,7 @@ mkdir path-wds
 
 if [ $par = true ] ; then
     for type in ${cloudtypes[@]}; do
-        a="python src/main.py --minpts=$minpts --maxpts=$maxpts "
+        a="python sim/main.py --minpts=$minpts --maxpts=$maxpts "
         b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
         c="--randtype=$type --comps=\"$comps\" --anoms=\"$anoms\""
         echo $a$b$c >> src/args.txt
@@ -42,16 +42,16 @@ if [ $par = true ] ; then
     parallel -j $concurrently < src/args.txt &>/dev/null
     rm src/args.txt
     for type in ${cloudtypes[@]}; do
-        echo "python src/read_simul_data.py --randtype=${type}" >> src/args.txt
+        echo "python sim/read_simul_data.py --randtype=${type}" >> src/args.txt
     done
     parallel -j ${#cloudtypes[@]} < src/args.txt
     rm src/args.txt
 elif [ $par = false ] ; then
     for type in ${cloudtypes[@]}; do
-        python src/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
+        python sim/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
             --numrunsper=$numrunsper --batch=$batch --randtype="$type" \
             --comps=${comps} --anoms=${anoms}
-        python src/read_simul_data.py --randtype="${type}"
+        python sim/read_simul_data.py --randtype="${type}"
     done
 fi
 
