@@ -15,4 +15,4 @@ module load gnu-parallel
 module load anaconda/3
 source activate tsp
 
-bash src/simulate.sh
+bash sim/simulate.sh

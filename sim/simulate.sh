@@ -37,15 +37,15 @@ if [ $par = true ] ; then
         a="python sim/main.py --minpts=$minpts --maxpts=$maxpts "
         b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
         c="--randtype=$type --comps=\"$comps\" --anoms=\"$anoms\""
-        echo $a$b$c >> src/args.txt
+        echo $a$b$c >> sim/args.txt
     done
-    parallel -j $concurrently < src/args.txt &>/dev/null
-    rm src/args.txt
+    parallel -j $concurrently < sim/args.txt &>/dev/null
+    rm sim/args.txt
     for type in ${cloudtypes[@]}; do
-        echo "python sim/read_simul_data.py --randtype=${type}" >> src/args.txt
+        echo "python sim/read_simul_data.py --randtype=${type}" >> sim/args.txt
     done
-    parallel -j ${#cloudtypes[@]} < src/args.txt
-    rm src/args.txt
+    parallel -j ${#cloudtypes[@]} < sim/args.txt
+    rm sim/args.txt
 elif [ $par = false ] ; then
     for type in ${cloudtypes[@]}; do
         python sim/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
