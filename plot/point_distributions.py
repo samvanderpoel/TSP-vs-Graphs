@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import scipy as sp
 import numpy as np
 import sys,os,time, random
-from colorama import Fore, Style
 
 ##-------------------------------------------------------------------------
 def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
