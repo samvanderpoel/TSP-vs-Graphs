@@ -33,6 +33,9 @@ mkdir tour-wds
 mkdir path-wds
 
 if [ $par = true ] ; then
+    if test -f sim/args.txt; then
+        rm sim/args.txt
+    fi
     for type in ${cloudtypes[@]}; do
         a="python sim/main.py --minpts=$minpts --maxpts=$maxpts "
         b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
