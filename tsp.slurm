@@ -3,7 +3,7 @@
 #SBATCH -D/gpfs/scratch/svanderpoel/SimulateTSP
 #SBATCH --partition=extended-28core
 #SBATCH --job-name=tsp
-#SBATCH --output=res.txt
+#SBATCH --output=stdout.txt
 #SBATCH --time=7-00:00:00
 #SBATCH --ntasks-per-node=28
 #SBATCH --nodes=2

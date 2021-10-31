@@ -5,34 +5,23 @@ import re
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--randtype', type=str, required=True)
+parser.add_argument('--cloudtype', type=str, required=True)
 parser.add_argument('--mi', type=int, required=False)
 parser.add_argument('--ma', type=int, required=False)
 parser.add_argument('--nobands', dest='nobands', action='store_true')
 parser.set_defaults(mi=0, ma=1000000, nobands=False)
-randtype = parser.parse_args().randtype
+cloudtype = parser.parse_args().cloudtype
 mi, ma = parser.parse_args().mi, parser.parse_args().ma
 nobands = parser.parse_args().nobands
 
-dirnames = {'pts_uni':'uniform-sqr',
-            'pts_annulus':'annulus',
-            'pts_annulus_random':'annulus-rand',
-            'pts_ball':'uniform-ball',
-            'pts_clusnorm':'normal-clust',
-            'pts_cubediam':'uniform-diam',
-            'pts_corners':'corners',
-            'pts_grid':'uniform-grid',
-            'pts_normal':'normal-bivar',
-            'pts_spokes':'spokes',
-            'pts_concentric_circular_points':'concen-circ'}
-dirname = dirnames[randtype] + "-results"
+dirname = cloudtype + "-results"
 cwd = os.getcwd()
-randdir = os.path.join(cwd, "results/" + dirname)
+clouddir = os.path.join(cwd, "results/" + dirname)
 
-def read_simul_data(randtype, which_comps='all'):
+def read_simul_data(cloudtype, which_comps='all'):
 
-    data = eval(open(randdir + '/data.txt', 'r').read())
-    # metadata = eval(open(randtype + '-results/meta.txt', 'r').read())
+    data = eval(open(clouddir + '/data.txt', 'r').read())
+    # metadata = eval(open(cloudtype + '-results/meta.txt', 'r').read())
 
     if which_comps=='all':
         which_comps = {}
@@ -57,7 +46,7 @@ def read_simul_data(randtype, which_comps='all'):
     kdels_plotcols = {g:kdels_cols[i%4] for i, g in enumerate(kdels)}
     knngs_plotcols = {g:knngs_cols[i%4] for i, g in enumerate(knngs)}
 
-    plotsdir = randdir + '/plots'
+    plotsdir = clouddir + '/plots'
     if not os.path.isdir(plotsdir):
         os.makedirs(plotsdir)
 
@@ -77,30 +66,30 @@ def read_simul_data(randtype, which_comps='all'):
                 'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
                 '1nng':'1-NNG', 'bito':'Bitonic TSP'}
     labels = {**templabs, **kdels_labs, **knngs_labs}
-    sample = {'pts_uni':'Uniform on Unit Square',
-              'pts_annulus':'Non-Random on Annulus',
-              'pts_annulus_random': 'Uniform on Annulus',
-              'pts_ball':'Uniform on a Disk',
-              'pts_clusnorm':'Clusters of Normal Distributions',
-              'pts_cubediam':'Uniform on Unit Diagonal',
-              'pts_corners':'Uniform on Vertices of a Regular Polygon',
-              'pts_grid':'Uniform on Grid',
-              'pts_normal':'Bivariate Normal',
-              'pts_spokes':'Random Spokes',
-              'pts_concentric_circular_points':'Concentric Circular Points'}
+    sample = {'uniform-sqr':'Uniform on Unit Square',
+              'annulus':'Non-Random on Annulus',
+              'annulus-rand': 'Uniform on Annulus',
+              'uniform-ball':'Uniform on a Disk',
+              'normal-clust':'Clusters of Normal Distributions',
+              'uniform-diam':'Uniform on Unit Diagonal',
+              'corners':'Uniform on Vertices of a Regular Polygon',
+              'uniform-grid':'Uniform on Grid',
+              'normal-bivar':'Bivariate Normal',
+              'spokes':'Random Spokes',
+              'concen-circ':'Concentric Circular Points'}
     for major_id in which_comps:
         all_comps = ['_'.join([major_id, minor_id]) for minor_id in which_comps[major_id]]
         fig, ax = plt.subplots()
-        ax.set_title("    Fraction of " + titles[major_id] + " Edges Occuring in Various " + \
-                      "Proximity Graphs\nSampling Type: " + sample[randtype],
-                      fontdict={'fontsize':14})
+        ax.set_title("Comparison of edges in " + titles[major_id] + " and " + \
+                     "Proximity Graphs\nSampling Type: " + sample[cloudtype],
+                      fontdict={'fontsize':12})
         all_numpts = [num for comp in all_comps for num in data[comp].keys()]
         minpts = max(mi, min(all_numpts))
         maxpts = min(ma, max(all_numpts))
         ax.set_xlim([minpts-10,maxpts+10])
         ax.set_ylim([0,1.1])
-        ax.set_xlabel("Number of points in point cloud")
-        ax.set_ylabel("Fraction")
+        ax.set_xlabel("Point cloud size")
+        ax.set_ylabel("Fraction of " + titles[major_id] + " Edges in Graph")
         for comp in all_comps:
             major_id, minor_id = comp.split('_')
             xvals = sorted(val for val in data[comp] if minpts <= val <= maxpts)
@@ -114,10 +103,10 @@ def read_simul_data(randtype, which_comps='all'):
                                 color=colors[minor_id], alpha=0.3)
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         ax.grid(color='gray',linestyle='--',linewidth=0.5)
-        fig.savefig(plotsdir + '/' + randtype + '_' + major_id + '_vs_graphs.pdf', format='pdf', bbox_inches='tight', dpi=500)
+        fig.savefig(plotsdir + '/' + cloudtype + '_' + major_id + '_vs_graphs.pdf', format='pdf', bbox_inches='tight', dpi=500)
 
 all_comps = {'tour':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del', 'bito', 'path'],
              'path':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del'],
              'bito':['1nng', '2nng', '20pt', 'mst', 'gab', 'urq', 'del']}
 which_comps = {'tour':['1nng', '2nng', 'mst', 'gab', 'urq', 'bito', 'del', 'path']}
-read_simul_data(randtype, which_comps='all')
+read_simul_data(cloudtype, which_comps='all')

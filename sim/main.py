@@ -8,9 +8,9 @@ import re
 import time
 import datetime
 
-from graphfuncs import *
+from cloud_funcs import *
+from graph_funcs import *
 from utils import *
-from point_distributions import *
 
 """
 Graphs are classified with a major_id or minor_id.
@@ -28,7 +28,7 @@ A graph having major_id means that other graphs are being
 compared against it.
 """
 
-def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps, anomalies={}):
+def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps, anomalies={}):
     """
     Main simulation function.
         minpts, maxpts, interval:
@@ -37,8 +37,8 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
             number of point clouds to simulate for each point cloud size
         batch:
             number of point clouds to work on concurrently
-        randtype:
-            string indicating point cloud type (defined in point_distributions.py)
+        cloudtype:
+            string indicating point cloud type (defined in cloud_funcs.py)
         which_comps:
             dictionary specifying the exact set of comparisons to be made
         anomalies:
@@ -49,23 +49,23 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
     start_time = time.time()
 
     # create directory to output results
-    dirnames = {'pts_uni':'uniform-sqr',
-                'pts_annulus':'annulus',
-                'pts_annulus_random':'annulus-rand',
-                'pts_ball':'uniform-ball',
-                'pts_clusnorm':'normal-clust',
-                'pts_cubediam':'uniform-diam',
-                'pts_corners':'corners',
-                'pts_grid':'uniform-grid',
-                'pts_normal':'normal-bivar',
-                'pts_spokes':'spokes',
-                'pts_concentric_circular_points':'concen-circ'}
-    randname = dirnames[randtype]
-    dirname = randname + "-results"
+    cloudfuncs = {'uniform-sqr':'pts_uni',
+                  'annulus':'pts_annulus',
+                  'annulus-rand':'pts_annulus_random',
+                  'uniform-ball':'pts_ball',
+                  'normal-clust':'pts_clusnorm',
+                  'uniform-diam':'pts_cubediam',
+                  'corners':'pts_corners',
+                  'uniform-grid':'pts_grid',
+                  'normal-bivar':'pts_normal',
+                  'spokes':'pts_spokes',
+                  'concen-circ':'pts_concentric_circular_points'}
+    cloudfuncname = cloudfuncs[cloudtype]
+    dirname = cloudtype + "-results"
     cwd = os.getcwd()
-    randdir = os.path.join(cwd, "results/" + dirname)
-    if not os.path.isdir(randdir):
-        os.makedirs(randdir)
+    clouddir = os.path.join(cwd, "results/" + dirname)
+    if not os.path.isdir(clouddir):
+        os.makedirs(clouddir)
 
     # gather comparison specifications from user
     comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
@@ -80,8 +80,8 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
                   'urq':get_urquhart_graph,
                   'del':get_delaunay_tri_graph,
                   'bito':get_bitonic_tour,
-                  'path':functools.partial(get_tsp_graph, mode='path', randname=randname, metric='2'),
-                  'tour':functools.partial(get_tsp_graph, mode='tour', randname=randname, metric='2')}
+                  'path':functools.partial(get_tsp_graph, mode='path', cloudtype=cloudtype, metric='2'),
+                  'tour':functools.partial(get_tsp_graph, mode='tour', cloudtype=cloudtype, metric='2')}
     allgraphfuncs = {**kdelafuncs, **knngsfuncs, **graphfuncs}
 
     # determine the batch sizes that will be computed
@@ -93,7 +93,7 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
         for idx, num_in_batch in enumerate(batchnums):
 
             # update meta.txt to reflect new batch
-            with open(randdir + '/meta.txt', 'w') as f:
+            with open(clouddir + '/meta.txt', 'w') as f:
                 runcount = sum(batchnums[:idx])
                 metadata = {'minpts-latest-run':minpts, 'maxpts-latest-run':maxpts,
                             'interval-latest-run':interval, 'batch-latest-run':batch,
@@ -101,9 +101,9 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
                             'numpts-latest':numpts, 'runcnt-latest':runcount}
                 f.write(str(metadata))
             
-            # generate num_in_batch point clouds of type randtype
-            # note it is crucial that the point clouds are sorted lexicographically
-            pts = [sorted(globals()[randtype](numpts), key=lambda k: [k[0], k[1]]) for _ in range(num_in_batch)]
+            # generate num_in_batch point clouds of type cloudtype
+            # note it is crucial that the point clouds be sorted lexicographically
+            pts = [sorted(globals()[cloudfuncname](numpts), key=lambda k: [k[0], k[1]]) for _ in range(num_in_batch)]
             graphfuncs = {graphid:func for graphid, func in allgraphfuncs.items() if graphid in graphs_to_compute}
             graphs = {}
             for name, func in graphfuncs.items():
@@ -137,15 +137,15 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
             for comp in comp_details:
                 proc = Process(target=functools.partial(compare, d=new_fracs, comp=comp, g1=comp_details[comp][0],
                                                         g2=comp_details[comp][1], div=comp_details[comp][2],
-                                                        anomalies=anomalies, dirname=randdir))
+                                                        anomalies=anomalies, dirname=clouddir))
                 procs.append(proc)
                 proc.start()
             for proc in procs:
                 proc.join()
             
             # update data.txt with new comparison data
-            if os.path.exists(randdir + "/data.txt"):
-                with open(randdir + "/data.txt", "r+") as f:
+            if os.path.exists(clouddir + "/data.txt"):
+                with open(clouddir + "/data.txt", "r+") as f:
                     data = eval(f.read())
                     for comp in comparisons:
                         if numpts not in data[comp]:
@@ -155,36 +155,36 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, randtype, which_comps,
                     f.write(str(data))
                     f.truncate()
             else:
-                with open(randdir + "/data.txt", 'w') as f:
+                with open(clouddir + "/data.txt", 'w') as f:
                     f.write(str({comp:{numpts:new_fracs[comp]} for comp in comparisons}))
             print("done updating data file")
 
         # update compute-times.txt
         time_for_numpts = time.time()-s
-        with open(randdir + '/compute-times.txt', 'a+') as f:
+        with open(clouddir + '/compute-times.txt', 'a+') as f:
             f.write('Numpts: ' + str(numpts) + ',\tCompute time: ' + str(round(time_for_numpts, 3)) + ' secs\t\t= ' + \
                     str(round(time_for_numpts/60, 3)) + ' mins\t\t= ' + str(round(time_for_numpts/3600, 3)) + ' hours\n')
 
     # remove tour-wds and path-wds directories, which were created by get_tsp_graph
     cwd = os.getcwd()
-    if os.path.isdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/")):
-        for item in os.listdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/")):
+    if os.path.isdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/")):
+        for item in os.listdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/")):
             try:
-                os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/" + item))
+                os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/" + item))
             except:
                 pass
         try:
-            os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + randname + "/"))
+            os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/"))
         except:
             pass
-    if os.path.isdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/")):
-        for item in os.listdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/")):
+    if os.path.isdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/")):
+        for item in os.listdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/")):
             try:
-                os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/" + item))
+                os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/" + item))
             except:
                 pass
         try:
-            os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + randname + "/"))
+            os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/"))
         except:
             pass
 
@@ -196,7 +196,7 @@ parser.add_argument('--maxpts', type=int, required=True)
 parser.add_argument('--interval', type=int, required=True)
 parser.add_argument('--numrunsper', type=int, required=True)
 parser.add_argument('--batch', type=int, required=True)
-parser.add_argument('--randtype', type=str, required=True)
+parser.add_argument('--cloudtype', type=str, required=True)
 parser.add_argument('--comps', type=str, required=True)
 parser.add_argument('--anoms', type=str, required=True)
 args = parser.parse_args()
@@ -205,9 +205,9 @@ maxpts     = args.maxpts
 interval   = args.interval
 batch      = args.batch
 numrunsper = args.numrunsper
-randtype   = args.randtype
+cloudtype   = args.cloudtype
 comps      = eval(args.comps)
 anoms      = eval(args.anoms)
 
 simulate(minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
-         batch=batch, randtype=randtype, which_comps=comps, anomalies=anoms)
+         batch=batch, cloudtype=cloudtype, which_comps=comps, anomalies=anoms)

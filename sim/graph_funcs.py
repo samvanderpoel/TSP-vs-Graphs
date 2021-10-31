@@ -280,7 +280,7 @@ def solve_tsp_from_file(fname):
     return solution
 
 #### Concorde TSP for tour/path for any metric ####
-def get_tsp_graph(points, q, iteration, mode, randname, metric='2'):
+def get_tsp_graph(points, q, iteration, mode, cloudtype, metric='2'):
     print("Working on TSP " + mode + ", numpts=" + str(len(points)) + \
           ", iteration " + str(iteration))
     points = np.array(points)
@@ -289,7 +289,7 @@ def get_tsp_graph(points, q, iteration, mode, randname, metric='2'):
     tsp_graph = nx.Graph()
 
     cwd = os.getcwd()
-    new_wd = os.path.join(cwd, mode + '-wds/' + mode + '-wds-' + randname + '/' + mode + '-wd' + str(iteration))
+    new_wd = os.path.join(cwd, mode + '-wds/' + mode + '-wds-' + cloudtype + '/' + mode + '-wd' + str(iteration))
     if not os.path.isdir(new_wd):
         os.makedirs(new_wd)
     os.chdir(new_wd)

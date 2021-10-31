@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 
-from graphfuncs import *
-from point_distributions import *
+from cloud_funcs import *
+from graph_funcs import *
 
 xlim, ylim = [0,1], [0,1]
 

@@ -9,8 +9,8 @@ anoms="{}"
 mkdir tour-wds
 mkdir path-wds
 
-python sim/main.py --minpts=10 --maxpts=60 --interval=10 --numrunsper=20 --batch=20 --randtype=pts_uni --comps=${comps} --anoms=${anoms}
-python sim/read_simul_data.py --randtype=pts_uni
+python sim/main.py --minpts=10 --maxpts=60 --interval=10 --numrunsper=20 --batch=20 --cloudtype=uniform-sqr --comps=${comps} --anoms=${anoms}
+python sim/plot_simul_data.py --cloudtype=uniform-sqr
 
 rm -r tour-wds
 rm -r path-wds
