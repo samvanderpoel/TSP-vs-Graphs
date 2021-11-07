@@ -1,33 +1,33 @@
 #!/bin/bash
+#
+#SBATCH -D/gpfs/scratch/svanderpoel/SimulateTSP
+#SBATCH --job-name=tsp
+#SBATCH --output=sim/tspout.txt
+#SBATCH --time=2-00:00:00
+#SBATCH --partition=long-28core
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=28
+#SBATCH --mail-type=BEGIN,END
+#SBATCH --mail-user=sam.vanderpoel@stonybrook.edu
 
-# minpts:               smallest point cloud size
-# maxpts:               largest point cloud size
-# interval:             spacing between point cloud sizes
-# numrunsper:           number of point clouds per point cloud size
-# batch:                number of point clouds to simulate/test concurrently
-# cloudtypes:           point cloud types (mostly probability distributions) to sample from
-#                       options are: 
-#                           uniform-sqr     annulus         annulus-rand    uniform-ball 
-#                           corners         normal-bivar    spokes          normal-clust
-#                           uniform-grid    uniform-diam    concen-circ
-# tour, path, bito:     which comparisons to make between graphs
-# anoms:                anomalies to check for and record
-# par:                  true/false, should cloudtypes be simulated concurrently
-# concurrently:         if par is true, how many to simulate concurrently
+module load gnu-parallel
+module load anaconda/3
+source activate tsp
 
-minpts=10
-maxpts=90
-interval=10
-numrunsper=20
-batch=20
+minpts=1510
+maxpts=1560
+interval=50
+numrunsper=50
+batch=50
 cloudtypes=( uniform-sqr annulus-rand uniform-ball normal-clust corners normal-bivar spokes )
 tour="{'tour':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del','bito','path'],"
 path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
 bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
 comps=$tour$path$bito
 anoms="{}"
-par=false
-concurrently=2
+par=true
+concurrently=7
 
 mkdir tour-wds
 mkdir path-wds
