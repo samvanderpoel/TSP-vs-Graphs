@@ -5,8 +5,9 @@
 #SBATCH --job-name=tsp
 #SBATCH --output=stdout.txt
 #SBATCH --time=7-00:00:00
-#SBATCH --ntasks-per-node=28
-#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=28
+#SBATCH --nodes=1
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user=sam.vanderpoel@stonybrook.edu
 

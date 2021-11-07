@@ -6,10 +6,16 @@ import itertools
 from multiprocessing import Pool
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--mid', type=str, required=True)
 parser.add_argument('--n', type=int, required=True)
 parser.add_argument('--p', type=int, required=True)
+parser.add_argument('--q', type=int, required=True)
+parser.add_argument('--gnuproc', type=int, required=True)
+mid = eval(parser.parse_args().mid)
 n = parser.parse_args().n
-p = parser.parse_args().p # (n-3)^p processes will be running
+p = parser.parse_args().p
+q = parser.parse_args().q
+gnuproc = parser.parse_args().gnuproc
 
 def all_vertices_deg2_p(F):
     """
@@ -54,18 +60,12 @@ def quit(arg):
     if arg is None:
         pass
     else:
-        print(5*'\n' + 40*'*')
-        print('The culprit is ' + str(arg[0]) + \
-              ' with edge exchange ' + str(arg[1]))
-        print(40*'*' + 5*'\n')
-        global result
-        result = 'False'
+        global counterexample
+        counterexample = arg
         pool.terminate()  # kill all pool workers
 
 def find_edge_swap(n, k, suffix, proc):
-    print('started proc ' + str(proc), file = sys.stdout)
-    with open('tour-reports-' + str(n) + '/out' + \
-              str(proc) + '.txt', 'w') as f:
+    with open(gnuprocdir + '/out' + str(proc) + '.txt', 'w') as f:
         f.write('started\n')
     for prefix in snng_parallel(n, k):
         sig = prefix + suffix
@@ -86,25 +86,32 @@ def find_edge_swap(n, k, suffix, proc):
                 break
         if not foundswap:
             return [sig, t]
-    print('finished proc ' + str(proc), file = sys.stdout)
-    with open('tour-reports-' + str(n) + '/out' + \
-              str(proc) + '.txt', 'a') as f:
+    with open(gnuprocdir + '/out' + str(proc) + '.txt', 'a') as f:
         f.write('finished\n')
 
 if __name__ == '__main__':
-    if not os.path.exists('tour-reports-' + str(n)):
-        os.mkdir('tour-reports-' + str(n))
+    gnuprocdir = 'tour-reports-' + str(n) + '/gnuproc' + str(gnuproc)
+    if not os.path.exists(gnuprocdir):
+        os.mkdir(gnuprocdir)
     suffixes = [list( set(range(n))-set([(i-1)%n,i,(i+1)%n]) ) \
-                for i in range(n-p, n)]
-    result = 'True'
+                for i in range(n-q, n)]
+    counterexample = None
     pool = Pool()
     for i, suffix in enumerate(itertools.product(*suffixes)):
         pool.apply_async(functools.partial(find_edge_swap,
                                            n=n,
-                                           k=n-p,
-                                           suffix=list(suffix),
+                                           k=n-(p+q),
+                                           suffix=mid+list(suffix),
                                            proc=i),
                          callback=quit)
     pool.close()
     pool.join()
-    print(result)
+    if counterexample is not None:
+        with open(gnuprocdir + '/failed.txt', 'w') as f:
+            f.write('gnuproc ' + str(gnuproc) + '\t\tfound counterexample: ' + \
+                    str(counterexample))
+        sys.exit(1)
+    else:
+        with open(gnuprocdir + '/success.txt', 'w') as f:
+            f.write('gnuproc ' + str(gnuproc) + \
+                    '\t\tcompleted without finding a counterexample')

@@ -1,17 +1,27 @@
 #!/bin/bash
 #
-#SBATCH -D/gpfs/scratch/svanderpoel/tspnng-checker
-#SBATCH --partition=long-40core
+#SBATCH -D/gpfs/scratch/svanderpoel/tspnng
 #SBATCH --job-name=tspnng9
-#SBATCH --output=out9.txt
-#SBATCH --time=2-00:00:00
-#SBATCH --nodes=6
+#SBATCH --output=/dev/null
+#SBATCH --time=0-12:00:00
+#SBATCH --partition=medium-40core
+#SBATCH --nodes=16
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=40
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user=sam.vanderpoel@stonybrook.edu
 
-module load shared
 module load anaconda/3
+module load gnu-parallel
+module load shared
 source activate tsp
 
-python tournng.py --n 9 --p 4
+n=9
+p=2
+q=3
+
+mkdir tour-reports-${n}
+python writeargs.py --n ${n} --p ${p} --q ${q}
+parallel -j 16 --halt now,fail=1 < args${n}.txt
+rm args${n}.txt
+python report.py --n ${n} --p ${p} > result${n}.txt
