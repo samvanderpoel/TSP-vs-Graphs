@@ -25,7 +25,7 @@ if os.path.exists(dirname):
             linesout[gnuproc] = [message, 'success']
         else:
             linesout[gnuproc] = ['gnuproc ' + str(gnuproc) + \
-                                 '\t\tis running', 'incomplete']
+                                 '\t\tis incomplete', 'incomplete']
     for gnuproc in sorted(linesout):
         print(linesout[gnuproc][0])
     results = [linesout[gnuproc][1] for gnuproc in linesout]

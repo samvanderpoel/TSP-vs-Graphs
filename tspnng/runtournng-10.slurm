@@ -13,7 +13,6 @@
 
 module load anaconda/3
 module load gnu-parallel
-module load shared
 source activate tsp
 
 n=10
@@ -21,7 +20,7 @@ p=3
 q=3
 
 mkdir tour-reports-${n}
-python writeargs.py --n ${n} --p ${p} --q ${q}
+python write_args.py --n ${n} --p ${p} --q ${q}
 parallel -j 50 --halt now,fail=1 < args${n}.txt
 rm args${n}.txt
 python report.py --n ${n} --p ${p} > result${n}.txt
