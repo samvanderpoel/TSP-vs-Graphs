@@ -67,21 +67,24 @@ def quit(arg):
 def find_edge_swap(n, k, suffix, proc):
     with open(gnuprocdir + '/out' + str(proc) + '.txt', 'w') as f:
         f.write('started\n')
+    F = nx.Graph()
+    edgelist = [(i, (i+1)%n) for i in range(n)]
+    F.add_edges_from(edgelist)
     for prefix in snng_parallel(n, k):
         sig = prefix + suffix
         foundswap = False
         for t in tgen(n):
-            F = nx.Graph()
             for i in range(n):
-                F.add_edge(i,(i+1)%n)
-            for i, ti in enumerate(t):
-                if ti in [-1,1]:
+                if t[i] == -1 or t[i] == 1:
                     try:
-                        F.remove_edge(i, (i+ti)%n)
+                        F.remove_edge(i, (i+t[i])%n)
                     except:
                         pass
                     F.add_edge(i, sig[i])
-            if cycle_p(F):
+            iscycle = cycle_p(F)
+            F.remove_edges_from(list(F.edges()))
+            F.add_edges_from(edgelist)
+            if iscycle:
                 foundswap = True
                 break
         if not foundswap:
@@ -98,12 +101,12 @@ if __name__ == '__main__':
     counterexample = None
     pool = Pool()
     for i, suffix in enumerate(itertools.product(*suffixes)):
-        pool.apply_async(functools.partial(find_edge_swap,
-                                           n=n,
-                                           k=n-(p+q),
-                                           suffix=mid+list(suffix),
-                                           proc=i),
-                         callback=quit)
+        func = functools.partial(find_edge_swap,
+                                 n=n,
+                                 k=n-(p+q),
+                                 suffix=mid+list(suffix),
+                                 proc=i)
+        pool.apply_async(func, callback=quit)
     pool.close()
     pool.join()
     if counterexample is not None:
