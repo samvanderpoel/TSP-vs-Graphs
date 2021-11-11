@@ -13,10 +13,10 @@ p = parser.parse_args().p
 q = parser.parse_args().q
 update = parser.parse_args().update
 
+incomplete = []
 if update:
     dirname = 'tour-reports-' + str(n)
     if os.path.exists(dirname):
-        incomplete = []
         for gnuproc in range((n-3)**p):
             gnuprocdir = os.path.join(dirname, 'gnuproc' + str(gnuproc))
             if not os.path.exists(gnuprocdir):
@@ -26,7 +26,8 @@ if update:
             elif 'failed.txt' in os.listdir(gnuprocdir):
                 print('gnuproc ' + str(gnuproc) + ' failed')
     else:
-        print('path does not exist')
+        for gnuproc in range((n-3)**p):
+            incomplete.append(gnuproc)
 
 midinds = list(range(n-(p+q), n-q))
 mids = [list( set(range(n))-set([(i-1)%n,i,(i+1)%n]) ) \

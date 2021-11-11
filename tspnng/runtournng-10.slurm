@@ -20,7 +20,7 @@ p=3
 q=3
 
 mkdir tour-reports-${n}
-python write_args.py --n ${n} --p ${p} --q ${q}
+python write_args.py --n ${n} --p ${p} --q ${q} --update
 parallel -j 16 --halt now,fail=1 < args${n}.txt
 rm args${n}.txt
 python report.py --n ${n} --p ${p} > result${n}.txt
