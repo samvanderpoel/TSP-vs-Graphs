@@ -38,7 +38,7 @@ def graph_to_yaml(graph, comp, dirname):
         for point in points:
             file.write('  - [{a},{b}]\n'.format(a=point[0], b=point[1]))
 
-def compare(d, comp, g1, g2, div, anomalies, dirname):
+def compare(d, comp, g1, g2, anomalies, dirname):
     """
     Compares two dictionaries g1, g2 of graphs indexed by iteration
         d:
@@ -47,14 +47,12 @@ def compare(d, comp, g1, g2, div, anomalies, dirname):
             string of the form 'majorid_minorid'
         g1, g2:
             dictionaries of graphs indexed by iteration
-        div:
-            n or n-1, depending whether g1 contains paths or cycles
     """
     #print('Working on comparison: ' + comp)
     n = len(g1)
     new_data = []
     for i in range(n):
-        common = num_common_edges(g1[i], g2[i]) / div
+        common = num_common_edges(g1[i], g2[i]) / len(list(g1[i].edges()))
         new_data += [common]
         if comp in anomalies:
             criterion = eval("common" + anomalies[comp])

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH -D/gpfs/scratch/svanderpoel/TSP-vs-Graphs
+#SBATCH -D/gpfs/scratch/svanderpoel/SimulateTSP
 #SBATCH --job-name=tsp
 #SBATCH --output=sim/tspout.txt
 #SBATCH --time=2-00:00:00

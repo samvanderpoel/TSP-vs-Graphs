@@ -53,18 +53,19 @@ def read_simul_data(cloudtype, which_comps='all'):
     # colors = {'path':'tab:brown', 'bito':'y', 'gab':'g', 'urq':'k', 'mst':'b',
     #           'del':'m', '1del':'tab:purple', '2del':'tab:pink',
     #           '20pt':'tab:orange', '1nng':'r', '2nng':'c'}
-    tempcols = {'path':(255/255,0/255,0/255), 'bito':(255/255,127/255,0/255), 'gab':(255/255,212/255,0/255),
+    tempcols = {'tour':(120/255,120/255,100/255),'path':(255/255,0/255,0/255),'bito':(255/255,127/255,0/255), 'gab':(255/255,212/255,0/255),
                 'urq':(0/255,0/255,0/255), 'mst':(106/255,255/255,0/255), 'del':(0/255,234/255,255/255),
-                '20pt':(0/255,149/255,255/255)}
+                'dmg':(255/255,60/255,60/255), '20pt':(0/255,149/255,255/255)}
     colors = {**tempcols, **kdels_plotcols, **knngs_plotcols}
     kdels_labs = {g:' '.join(['Order-'+str(g[:-3]), 'Delaunay']) \
                   for g in graphs_to_compute if re.match("[0-9]+del", g)}
     knngs_labs = {g:''.join([str(g[:-3]), '-NNG']) \
                   for g in graphs_to_compute if re.match("[0-9]+nng", g)}
-    titles = {'tour':'TSP Tour', 'path':'TSP Path', 'bito':'Bitonic TSP Tour'}
+    titles = {'tour':'TSP Tour', 'path':'TSP Path', 'bito':'Bitonic TSP Tour', 'dmg':'Delaunay \\ Gabriel',
+              '1nng':'Nearest Neighbor Graph'}
     templabs = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay', '2del':'Order-2 Delaunay',
-                'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
-                '1nng':'1-NNG', 'bito':'Bitonic TSP'}
+                'gab':'Gabriel', 'tour':'TSP Tour', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
+                'dmg':'Delaunay \\ Gabriel', '1nng':'1-NNG', 'bito':'Bitonic TSP'}
     labels = {**templabs, **kdels_labs, **knngs_labs}
     sample = {'uniform-sqr':'Uniform on Unit Square',
               'annulus':'Non-Random on Annulus',

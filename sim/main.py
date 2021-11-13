@@ -78,6 +78,9 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
                   'mst':get_mst_graph,
                   'gab':get_gabriel_graph,
                   'urq':get_urquhart_graph,
+                  'dmg':functools.partial(minus_func,
+                                          d1=dict(func=get_delaunay_tri_graph),
+                                          d2=dict(func=get_gabriel_graph)),
                   'del':get_delaunay_tri_graph,
                   'bito':get_bitonic_tour,
                   'path':functools.partial(get_tsp_graph, mode='path', cloudtype=cloudtype, metric='2'),
@@ -129,15 +132,15 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
             for major_id in which_comps:
                 div = numpts if major_id in ['tour', 'bito'] else numpts-1
                 for minor_id in which_comps[major_id]:
-                    comp_details['_'.join([major_id, minor_id])] = [graphs[minor_id], graphs[major_id], div]
+                    comp_details['_'.join([major_id, minor_id])] = [graphs[major_id], graphs[minor_id], div]
             manager = Manager()
             new_fracs = manager.dict()
             procs = []
             # make all graph comparisons in parallel
             for comp in comp_details:
                 proc = Process(target=functools.partial(compare, d=new_fracs, comp=comp, g1=comp_details[comp][0],
-                                                        g2=comp_details[comp][1], div=comp_details[comp][2],
-                                                        anomalies=anomalies, dirname=clouddir))
+                                                        g2=comp_details[comp][1], anomalies=anomalies,
+                                                        dirname=clouddir))
                 procs.append(proc)
                 proc.start()
             for proc in procs:

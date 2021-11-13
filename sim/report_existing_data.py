@@ -25,9 +25,11 @@ types = ['uniform-sqr','annulus','annulus-rand','uniform-ball',
          'normal-bivar','spokes','concen-circ']
 dirnames = [name + '-results' for name in types]
 labels = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay', '2del':'Order-2 Delaunay',
-          'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
-          '1nng':'1-NNG', 'bito':'Bitonic TSP', 'tour':'TSP Tour', 'path':'TSP Path'}
-results = [['cloud_type', 'majorid', 'minorid', 'minpts', 'maxpts', 'min', 'pct25', 'median', 'mean', 'pct75', 'max', 'subset']]
+          'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST', 
+          'dmg':'Delaunay \\ Gabriel', '1nng':'1-NNG', 'bito':'Bitonic TSP', 'tour':'TSP Tour',
+          'path':'TSP Path'}
+results = [['cloud_type', 'majorid', 'minorid', 'minpts', 'maxpts', 'min',
+            'pct25', 'median', 'mean', 'pct75', 'max', 'subset']]
 
 for item in contents:
     itempath = os.path.join(cwd, 'results/' + item)

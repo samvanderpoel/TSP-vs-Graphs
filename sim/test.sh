@@ -2,8 +2,9 @@
 
 tour="{'tour':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del','bito','path'],"
 path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
-bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
-comps=$tour$path$bito
+bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
+nng="'1nng':['tour','path','bito']}"
+comps=$tour$path$bito$nng
 anoms="{}"
 
 mkdir tour-wds

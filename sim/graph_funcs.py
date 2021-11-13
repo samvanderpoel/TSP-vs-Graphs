@@ -55,8 +55,9 @@ def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     q.put({iteration:nng_graph})
 
 #### Delaunay Triangulation ####
-def get_delaunay_tri_graph(points, q, iteration):
-    print("Working on Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+def get_delaunay_tri_graph(points, q=None, iteration=None):
+    if q is not None:
+        print("Working on Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points       = np.array(points)
     coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
@@ -79,10 +80,12 @@ def get_delaunay_tri_graph(points, q, iteration):
         total_weight_of_edges = total_weight_of_edges + edge_wt 
     deltri_graph.graph['weight'] = total_weight_of_edges
     deltri_graph.graph['type']   = 'dt'
-    print("Finished computing Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    
-    # multiprocessing:
-    q.put({iteration:deltri_graph})
+    if q is not None:
+        print("Finished computing Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        # multiprocessing:
+        q.put({iteration:deltri_graph})
+    else:
+        return deltri_graph
 
 #### MST ####
 def get_mst_graph(points, q, iteration):
@@ -111,8 +114,9 @@ def get_mst_graph(points, q, iteration):
     q.put({iteration:mst_graph})
 
 #### Gabriel ####
-def get_gabriel_graph(points, q, iteration):
-    print("Working on Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+def get_gabriel_graph(points, q=None, iteration=None):
+    if q is not None:
+        print("Working on Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     points = np.array(points)
     coords = [{"pos":pt} for pt in points]
     gabriel = nx.Graph()
@@ -146,10 +150,12 @@ def get_gabriel_graph(points, q, iteration):
         elif v2 < 0: # two-sided unbounded Voronoi edge
             gabriel.add_edge(p1,p2)
     gabriel.graph['type'] = 'gabriel'
-    print("Finished computing Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
-    
-    # multiprocessing:
-    q.put({iteration:gabriel})
+    if q is not None:
+        print("Finished computing Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        # multiprocessing:
+        q.put({iteration:gabriel})
+    else:
+        return gabriel
 
 #### Urquhart ####
 def get_urquhart_graph(points, q, iteration):
@@ -395,3 +401,15 @@ def get_kdelaunay_graph(points, order, q, iteration):
 
     # multiprocessing
     q.put({iteration:k_delaunay})
+
+def minus(g1, g2):
+    g = nx.Graph()
+    for e in g1.edges():
+        if not g2.has_edge(*e):
+            g.add_edge(*e)
+    return g
+
+def minus_func(d1, d2, points, q, iteration):
+    g1 = d1['func'](points=points, **{k:v for k, v in d1.items() if k != 'func'})
+    g2 = d2['func'](points=points, **{k:v for k, v in d2.items() if k != 'func'})
+    q.put({iteration:minus(g1, g2)})
