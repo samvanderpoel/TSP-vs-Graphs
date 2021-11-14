@@ -33,4 +33,3 @@ with open(fname, 'w') as f:
     for pt in l1 + l2:
         lines.append('  - ' + str(pt) + '\n')
     f.writelines(lines)
-
