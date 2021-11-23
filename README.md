@@ -1,6 +1,5 @@
 # TSP-vs-Graphs
-This repository is part of ongoing research with [Logan Graham](https://github.com/LoganDGraham), Hugo Mainguy, and 
-[Gaurish Telang](https://github.com/gtelang).
+This repository is part of ongoing research in the Computational Geometry Group at Stony Brook University.
 
 TSP-vs-Graphs includes programs to explore the intersection of traveling salesman problem (TSP) solutions and various proximity graphs. _TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
 - k-nearest neighbor graphs (primarily k=1, 2, 0.2n)
