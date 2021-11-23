@@ -15,8 +15,9 @@
 # par:                  true/false, should cloudtypes be simulated concurrently
 # concurrently:         if par is true, how many to simulate concurrently
 
+jobname=job0
 minpts=10
-maxpts=90
+maxpts=70
 interval=10
 numrunsper=50
 batch=25
@@ -27,7 +28,7 @@ bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
 nng="'1nng':['tour','path','bito']}"
 comps=$tour$path$bito$nng
 anoms="{}"
-par=false
+par=true
 concurrently=2
 
 mkdir tour-wds
@@ -38,7 +39,7 @@ if [ $par = true ] ; then
         rm sim/args.txt
     fi
     for type in ${cloudtypes[@]}; do
-        a="python sim/main.py --minpts=$minpts --maxpts=$maxpts "
+        a="python sim/main.py --jobname=\"$jobname\" --minpts=$minpts --maxpts=$maxpts "
         b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
         c="--cloudtype=$type --comps=\"$comps\" --anoms=\"$anoms\""
         echo $a$b$c >> sim/args.txt
@@ -46,16 +47,16 @@ if [ $par = true ] ; then
     parallel -j $concurrently < sim/args.txt &>/dev/null
     rm sim/args.txt
     for type in ${cloudtypes[@]}; do
-        echo "python sim/plot_simul_data.py --cloudtype=${type}" >> sim/args.txt
+        echo "python sim/plot_simul_data.py --jobname=\"$jobname\" --cloudtype=${type}" >> sim/args.txt
     done
     parallel -j ${#cloudtypes[@]} < sim/args.txt
     rm sim/args.txt
 elif [ $par = false ] ; then
     for type in ${cloudtypes[@]}; do
-        python sim/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
-            --numrunsper=$numrunsper --batch=$batch --cloudtype="$type" \
-            --comps=${comps} --anoms=${anoms}
-        python sim/plot_simul_data.py --cloudtype="${type}"
+        python sim/main.py --jobname=$jobname --minpts=$minpts --maxpts=$maxpts \
+            --interval=$interval --numrunsper=$numrunsper --batch=$batch \
+            --cloudtype="$type" --comps=${comps} --anoms=${anoms}
+        python sim/plot_simul_data.py --jobname=$jobname --cloudtype="${type}"
     done
 fi
 

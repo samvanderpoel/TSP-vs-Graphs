@@ -6,7 +6,6 @@ import argparse
 import os
 import re
 import time
-import datetime
 
 from cloud_funcs import *
 from graph_funcs import *
@@ -28,7 +27,8 @@ A graph having major_id means that other graphs are being
 compared against it.
 """
 
-def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps, anomalies={}):
+def simulate(jobname, minpts, maxpts, interval, numrunsper,
+             batch, cloudtype, which_comps, anomalies={}):
     """
     Main simulation function.
         minpts, maxpts, interval:
@@ -63,13 +63,16 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
     cloudfuncname = cloudfuncs[cloudtype]
     dirname = cloudtype + "-results"
     cwd = os.getcwd()
-    clouddir = os.path.join(cwd, "results/" + dirname)
+    clouddir = os.path.join(cwd, "results", jobname, dirname)
     if not os.path.isdir(clouddir):
         os.makedirs(clouddir)
 
     # gather comparison specifications from user
-    comparisons = ['_'.join([major_id, minor_id]) for major_id in which_comps for minor_id in which_comps[major_id]]
-    graphs_to_compute = set(which_comps.keys()) | set(graphid for v in which_comps.values() for graphid in v)
+    comparisons = ['_'.join([major_id, minor_id]) \
+                   for major_id in which_comps    \
+                   for minor_id in which_comps[major_id]]
+    graphs_to_compute = set(which_comps.keys()) | \
+                        set(graphid for v in which_comps.values() for graphid in v)
     kdelafuncs = {g:functools.partial(get_kdelaunay_graph, order=int(g[:-3])) \
                   for g in graphs_to_compute if re.match("[0-9]+del", g)}
     knngsfuncs = {g:functools.partial(get_nng_graph, k=int(g[:-3]), metric=2) \
@@ -83,8 +86,14 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
                                           d2=dict(func=get_gabriel_graph)),
                   'del':get_delaunay_tri_graph,
                   'bito':get_bitonic_tour,
-                  'path':functools.partial(get_tsp_graph, mode='path', cloudtype=cloudtype, metric='2'),
-                  'tour':functools.partial(get_tsp_graph, mode='tour', cloudtype=cloudtype, metric='2')}
+                  'path':functools.partial(get_tsp_graph,
+                                           mode='path',
+                                           dirname=jobname+"/"+cloudtype,
+                                           metric='2'),
+                  'tour':functools.partial(get_tsp_graph,
+                                           mode='tour',
+                                           dirname=jobname+"/"+cloudtype,
+                                           metric='2')}
     allgraphfuncs = {**kdelafuncs, **knngsfuncs, **graphfuncs}
 
     # determine the batch sizes that will be computed
@@ -106,15 +115,22 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
             
             # generate num_in_batch point clouds of type cloudtype
             # note it is crucial that the point clouds be sorted lexicographically
-            pts = [sorted(globals()[cloudfuncname](numpts), key=lambda k: [k[0], k[1]]) for _ in range(num_in_batch)]
-            graphfuncs = {graphid:func for graphid, func in allgraphfuncs.items() if graphid in graphs_to_compute}
+            pts = [sorted(globals()[cloudfuncname](numpts), key=lambda k: [k[0], k[1]]) \
+                   for _ in range(num_in_batch)]
+            graphfuncs = {graphid:func
+                          for graphid, func in allgraphfuncs.items()
+                          if graphid in graphs_to_compute}
             graphs = {}
             for name, func in graphfuncs.items():
-                rets = [] # will contain dictionaries of the form {iteration:graph} (as in graphfuncs.py)
+                rets = [] # will contain dictionaries of the form {iteration:graph}
                 queue = Queue() # will schedule computation of graphs
                 procs = []
                 for iteration in range(num_in_batch):
-                    proc = Process(target=functools.partial(func, points=pts[iteration], q=queue, iteration=iteration))
+                    task = functools.partial(func,
+                                             points=pts[iteration],
+                                             q=queue,
+                                             iteration=iteration)
+                    proc = Process(target=task)
                     procs.append(proc)
                     proc.start()
                 for proc in procs:
@@ -123,7 +139,9 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
                 for proc in procs:
                     proc.join()
                 # unpack results and store graphs in graphs dict
-                samples = {iteration:graph for d in rets for iteration, graph in d.items()}
+                samples = {iteration:graph
+                           for d in rets
+                           for iteration, graph in d.items()}
                 graphs[name] = samples
             print("done computing graphs")
 
@@ -132,15 +150,21 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
             for major_id in which_comps:
                 div = numpts if major_id in ['tour', 'bito'] else numpts-1
                 for minor_id in which_comps[major_id]:
-                    comp_details['_'.join([major_id, minor_id])] = [graphs[major_id], graphs[minor_id], div]
+                    spec = [graphs[major_id], graphs[minor_id], div]
+                    comp_details['_'.join([major_id, minor_id])] = spec
             manager = Manager()
             new_fracs = manager.dict()
             procs = []
             # make all graph comparisons in parallel
             for comp in comp_details:
-                proc = Process(target=functools.partial(compare, d=new_fracs, comp=comp, g1=comp_details[comp][0],
-                                                        g2=comp_details[comp][1], anomalies=anomalies,
-                                                        dirname=clouddir))
+                task = functools.partial(compare,
+                                         d=new_fracs,
+                                         comp=comp,
+                                         g1=comp_details[comp][0],
+                                         g2=comp_details[comp][1],
+                                         anomalies=anomalies,
+                                         dirname=clouddir)
+                proc = Process(target=task)
                 procs.append(proc)
                 proc.start()
             for proc in procs:
@@ -159,58 +183,65 @@ def simulate(minpts, maxpts, interval, numrunsper, batch, cloudtype, which_comps
                     f.truncate()
             else:
                 with open(clouddir + "/data.txt", 'w') as f:
-                    f.write(str({comp:{numpts:new_fracs[comp]} for comp in comparisons}))
+                    f.write(str({comp:{numpts:new_fracs[comp]}
+                                 for comp in comparisons}))
             print("done updating data file")
 
         # update compute-times.txt
         time_for_numpts = time.time()-s
         with open(clouddir + '/compute-times.txt', 'a+') as f:
-            f.write('Numpts: ' + str(numpts) + ',\tCompute time: ' + str(round(time_for_numpts, 3)) + ' secs\t\t= ' + \
-                    str(round(time_for_numpts/60, 3)) + ' mins\t\t= ' + str(round(time_for_numpts/3600, 3)) + ' hours\n')
+            f.write('Numpts: ' + str(numpts) + ',\tCompute time: '      + \
+                    str(round(time_for_numpts,      3)) + ' secs\t\t= ' + \
+                    str(round(time_for_numpts/60,   3)) + ' mins\t\t= ' + \
+                    str(round(time_for_numpts/3600, 3)) + ' hours\n')
 
     # remove tour-wds and path-wds directories, which were created by get_tsp_graph
+    tourwd = "tour-wds/" + "tour-wds-" + cloudtype + "/"
+    pathwd = "path-wds/" + "path-wds-" + cloudtype + "/"
     cwd = os.getcwd()
-    if os.path.isdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/")):
-        for item in os.listdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/")):
+    if os.path.isdir(os.path.join(cwd, tourwd)):
+        for item in os.listdir(os.path.join(cwd, tourwd)):
             try:
-                os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/" + item))
+                os.rmdir(os.path.join(cwd, tourwd + item))
             except:
                 pass
         try:
-            os.rmdir(os.path.join(cwd, "tour-wds/" + "tour-wds-" + cloudtype + "/"))
+            os.rmdir(os.path.join(cwd, tourwd))
         except:
             pass
-    if os.path.isdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/")):
-        for item in os.listdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/")):
+    if os.path.isdir(os.path.join(cwd, pathwd)):
+        for item in os.listdir(os.path.join(cwd, pathwd)):
             try:
-                os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/" + item))
+                os.rmdir(os.path.join(cwd, pathwd + item))
             except:
                 pass
         try:
-            os.rmdir(os.path.join(cwd, "path-wds/" + "path-wds-" + cloudtype + "/"))
+            os.rmdir(os.path.join(cwd, pathwd))
         except:
             pass
 
     print("Total time in seconds: " + str(time.time() - start_time))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--minpts', type=int, required=True)
-parser.add_argument('--maxpts', type=int, required=True)
-parser.add_argument('--interval', type=int, required=True)
+parser.add_argument('--jobname',    type=str, required=True)
+parser.add_argument('--minpts',     type=int, required=True)
+parser.add_argument('--maxpts',     type=int, required=True)
+parser.add_argument('--interval',   type=int, required=True)
 parser.add_argument('--numrunsper', type=int, required=True)
-parser.add_argument('--batch', type=int, required=True)
-parser.add_argument('--cloudtype', type=str, required=True)
-parser.add_argument('--comps', type=str, required=True)
-parser.add_argument('--anoms', type=str, required=True)
+parser.add_argument('--batch',      type=int, required=True)
+parser.add_argument('--cloudtype',  type=str, required=True)
+parser.add_argument('--comps',      type=str, required=True)
+parser.add_argument('--anoms',      type=str, required=True)
 args = parser.parse_args()
+jobname    = args.jobname
 minpts     = args.minpts
 maxpts     = args.maxpts
 interval   = args.interval
 batch      = args.batch
 numrunsper = args.numrunsper
-cloudtype   = args.cloudtype
+cloudtype  = args.cloudtype
 comps      = eval(args.comps)
 anoms      = eval(args.anoms)
 
-simulate(minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
+simulate(jobname=jobname, minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
          batch=batch, cloudtype=cloudtype, which_comps=comps, anomalies=anoms)
