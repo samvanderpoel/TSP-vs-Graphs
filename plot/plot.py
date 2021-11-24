@@ -39,8 +39,7 @@ def main():
                 print(exc)
     elif len(sys.argv)>=2 and sys.argv[1] == '--tsplibinstance':
         
-        # this variable is added as a prefix to the filename so that the user does not have to type in a big-ass filename into the terminal
-        tsplibfiledir='/home/gaurish/Dropbox/MyWiki/research-projects/TSPNNG/sym-tsp-tsplib/instances/euclidean_instances_yaml/'
+        tsplibfiledir=os.getcwd()
         filename = sys.argv[2]
         filename = tsplibfiledir + filename + '.yml'
         with open(filename, 'r') as stream:
@@ -359,7 +358,7 @@ def render_graph(G,fig,ax):
     elif G.graph['type'] == 'pypath':
         edgecol = (255/255, 0/255, 0/255)
     elif G.graph['type'] == 'concorde':
-        edgecol = (127/255 , 255/255, 212/255)
+        edgecol = (255/255 , 99/255, 71/255)
     elif G.graph['type'] =='kdel':
         edgecol = (255/255,0/255,255/255)
     if G.graph['type'] not in ['poly']:
@@ -368,7 +367,7 @@ def render_graph(G,fig,ax):
         for  (nidx1, nidx2) in G.edges:
             x1, y1 = G.nodes[nidx1]['pos']
             x2, y2 = G.nodes[nidx2]['pos']
-            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=0.6)
+            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=0.8)
     else:
         from networkx.algorithms.traversal.depth_first_search import dfs_edges
         node_coods = []
