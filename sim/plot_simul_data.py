@@ -5,18 +5,21 @@ import re
 import os
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--jobname',   type=str, required=True)
 parser.add_argument('--cloudtype', type=str, required=True)
-parser.add_argument('--mi', type=int, required=False)
-parser.add_argument('--ma', type=int, required=False)
+parser.add_argument('--mi',        type=int, required=False)
+parser.add_argument('--ma',        type=int, required=False)
 parser.add_argument('--nobands', dest='nobands', action='store_true')
 parser.set_defaults(mi=0, ma=1000000, nobands=False)
-cloudtype = parser.parse_args().cloudtype
-mi, ma = parser.parse_args().mi, parser.parse_args().ma
-nobands = parser.parse_args().nobands
+args      = parser.parse_args()
+jobname   = args.jobname
+cloudtype = args.cloudtype
+mi, ma    = args.mi, args.ma
+nobands   = parser.parse_args().nobands
 
 dirname = cloudtype + "-results"
 cwd = os.getcwd()
-clouddir = os.path.join(cwd, "results/" + dirname)
+clouddir = os.path.join(cwd, "results", jobname, dirname)
 
 def read_simul_data(cloudtype, which_comps='all'):
 

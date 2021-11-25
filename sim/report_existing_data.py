@@ -6,19 +6,22 @@ from termcolor import colored
 import csv
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--jobname', type=str, required=True)
 parser.add_argument('--summary', dest='summary', action='store_true')
-parser.add_argument('--all', dest='summary', action='store_false')
-parser.add_argument('--export', dest='export', action='store_true')
+parser.add_argument('--all',     dest='summary', action='store_false')
+parser.add_argument('--export',  dest='export',  action='store_true')
 parser.set_defaults(summary=True, export=False)
 args = parser.parse_args()
+jobname = args.jobname
 summary = args.summary
 export = args.export
 
 cwd = os.getcwd()
-if not os.path.isdir(os.path.join(cwd, 'results/')):
+jobpath = os.path.join(cwd, 'results', jobname)
+if not os.path.isdir(jobpath):
     print('No data to report')
     sys.exit()
-contents = os.listdir(os.path.join(cwd, 'results/'))
+contents = os.listdir(jobpath)
 
 types = ['uniform-sqr','annulus','annulus-rand','uniform-ball',
          'normal-clust','uniform-diam','corners','uniform-grid',
@@ -32,7 +35,7 @@ results = [['cloud_type', 'majorid', 'minorid', 'minpts', 'maxpts', 'min',
             'pct25', 'median', 'mean', 'pct75', 'max', 'subset']]
 
 for item in contents:
-    itempath = os.path.join(cwd, 'results/' + item)
+    itempath = os.path.join(jobpath, item)
     if os.path.isdir(itempath) and item in dirnames:
         try:
             data = eval(open(os.path.join(itempath, 'data.txt'), 'r').read())
@@ -74,6 +77,6 @@ for item in contents:
             continue
 
 if export:
-    with open('results/stats.csv', 'w', newline='\n') as f:
+    with open('results/' + jobname + '/stats.csv', 'w', newline='\n') as f:
         writer = csv.writer(f)
         writer.writerows(results)

@@ -16,23 +16,29 @@ def num_common_edges(g1, g2):
             num_common += 1
     return num_common
 
-def graph_to_yaml(graph, comp, dirname):
+def minus(g1, g2):
+    # returns the nx graph g1-g2
+    g = nx.Graph()
+    for e in g1.edges():
+        if not g2.has_edge(*e):
+            g.add_edge(*e)
+    return g
+
+def graph_to_yaml(graph, dirname):
     """
     Writes the coordinates of a nx graph to a yaml file.
         graph:
             nx graph
-        comp:
-            comparison id, of the form 'majorid_minorid'
         dirname:
             dir in which to create anomalies folder and write yaml files
     """
     points = [graph.nodes[node]["pos"] for node in list(graph.nodes)]
     n = len(points)
-    anom_dir = os.path.join(dirname, 'anomalies/' + comp)
-    if not os.path.isdir(anom_dir):
-        os.makedirs(anom_dir)
-    timenow = str(datetime.datetime.now()).replace('-','').replace(' ','').replace(':','').replace('.','')
-    filepath = os.path.join(anom_dir, str(n) + '_' + timenow + '.yaml')
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+    now = str(datetime.datetime.now())
+    strnow = now.replace('-','').replace(' ','').replace(':','').replace('.','')
+    filepath = os.path.join(dirname, str(n) + '_' + strnow + '.yaml')
     with open(filepath, 'w+') as file:
         file.write('points:\n')
         for point in points:
@@ -57,6 +63,6 @@ def compare(d, comp, g1, g2, anomalies, dirname):
         if comp in anomalies:
             criterion = eval("common" + anomalies[comp])
             if criterion:
-                graph_to_yaml(g1[i], comp, dirname)
+                graph_to_yaml(g1[i], os.path.join(dirname, 'anomalies/' + comp))
     d[comp] = new_data
     #print('Finished comparison: ' + comp)
