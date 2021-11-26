@@ -101,7 +101,7 @@ def find_edge_swap_gt(n, k, suffix, proc):
     F.set_fast_edge_removal(fast=True)
     edgelist = [(i, (i+1)%n) for i in range(n)]
     F.add_edge_list(edgelist)
-    G = F.copy()
+    # G = F.copy()
     for prefix in snng_parallel(n, k):
         sig = prefix + suffix
         foundswap = False
@@ -115,7 +115,7 @@ def find_edge_swap_gt(n, k, suffix, proc):
                     F.add_edge(i, sig[i])
             iscycle = list(tg.label_components(F)[0]) == n*[0] and \
                       all(F.get_total_degrees(F.get_vertices()) == 2)
-            iscycle = tg.isomorphism(F, G)
+            # iscycle = tg.isomorphism(F, G)
             F.clear_edges()
             F.add_edge_list(edgelist)
             if iscycle:
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     counterexample = None
     pool = Pool()
     for i, suffix in enumerate(itertools.product(*suffixes)):
-        func = functools.partial(find_edge_swap_gt,
+        func = functools.partial(find_edge_swap_nx,
                                  n=n,
                                  k=n-(p+q),
                                  suffix=mid+list(suffix),
