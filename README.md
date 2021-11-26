@@ -1,7 +1,7 @@
 # TSP-vs-Graphs
-This repository is part of ongoing research in the Computational Geometry Group at Stony Brook University.
+TSP-vs-Graphs is part of ongoing research in the Computational Geometry Group at Stony Brook University. It includes programs to explore relations between traveling salesman problem (TSP) solutions and proximity graphs.
 
-TSP-vs-Graphs includes programs to explore the intersection of traveling salesman problem (TSP) solutions and various proximity graphs. _TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
+_TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
 - k-nearest neighbor graphs (primarily k=1, 2, 0.2n)
 - Minimum spanning tree (MST)
 - Gabriel graph
@@ -19,6 +19,7 @@ Create an [Anaconda](https://www.anaconda.com) environment with the necessary li
 ```
 conda create --name tsp python=3.7.3 pip
 conda activate tsp
+conda install -c conda-forge graph-tool
 pip install -r requirements.txt
 ```
 Next, set up [PyConcorde](https://github.com/jvkersch/pyconcorde):

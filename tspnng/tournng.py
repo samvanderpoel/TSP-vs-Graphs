@@ -4,6 +4,8 @@ import sys, os
 import networkx as nx
 import itertools
 from multiprocessing import Pool
+import graph_tool.all as gt
+import graph_tool.topology as tg
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mid', type=str, required=True)
@@ -64,7 +66,7 @@ def quit(arg):
         counterexample = arg
         pool.terminate()  # kill all pool workers
 
-def find_edge_swap(n, k, suffix, proc):
+def find_edge_swap_nx(n, k, suffix, proc):
     with open(gnuprocdir + '/out' + str(proc) + '.txt', 'w') as f:
         f.write('started\n')
     F = nx.Graph()
@@ -92,6 +94,38 @@ def find_edge_swap(n, k, suffix, proc):
     with open(gnuprocdir + '/out' + str(proc) + '.txt', 'a') as f:
         f.write('finished\n')
 
+def find_edge_swap_gt(n, k, suffix, proc):
+    with open(gnuprocdir + '/out' + str(proc) + '.txt', 'w') as f:
+        f.write('started\n')
+    F = gt.Graph(directed=False)
+    F.set_fast_edge_removal(fast=True)
+    edgelist = [(i, (i+1)%n) for i in range(n)]
+    F.add_edge_list(edgelist)
+    G = F.copy()
+    for prefix in snng_parallel(n, k):
+        sig = prefix + suffix
+        foundswap = False
+        for t in tgen(n):
+            for i in range(n):
+                if t[i] == -1 or t[i] == 1:
+                    try:
+                        F.remove_edge(F.edge(i, (i+t[i])%n))
+                    except:
+                        pass
+                    F.add_edge(i, sig[i])
+            iscycle = list(tg.label_components(F)[0]) == n*[0] and \
+                      all(F.get_total_degrees(F.get_vertices()) == 2)
+            iscycle = tg.isomorphism(F, G)
+            F.clear_edges()
+            F.add_edge_list(edgelist)
+            if iscycle:
+                foundswap = True
+                break
+        if not foundswap:
+            return [sig, t]
+    with open(gnuprocdir + '/out' + str(proc) + '.txt', 'a') as f:
+        f.write('finished\n')
+
 if __name__ == '__main__':
     gnuprocdir = 'tour-reports-' + str(n) + '/gnuproc' + str(gnuproc)
     if not os.path.exists(gnuprocdir):
@@ -101,7 +135,7 @@ if __name__ == '__main__':
     counterexample = None
     pool = Pool()
     for i, suffix in enumerate(itertools.product(*suffixes)):
-        func = functools.partial(find_edge_swap,
+        func = functools.partial(find_edge_swap_gt,
                                  n=n,
                                  k=n-(p+q),
                                  suffix=mid+list(suffix),
