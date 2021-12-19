@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# jobname:              a unique name identifying the current job
 # minpts:               smallest point cloud size
 # maxpts:               largest point cloud size
 # interval:             spacing between point cloud sizes

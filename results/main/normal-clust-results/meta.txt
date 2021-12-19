@@ -1,0 +1,1 @@
+{'minpts-latest-run': 1610, 'maxpts-latest-run': 1710, 'interval-latest-run': 50, 'batch-latest-run': 50, 'numrunsper-latest-run': 50, 'numpts-latest': 1660, 'runcnt-latest': 0}

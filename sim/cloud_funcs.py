@@ -223,20 +223,20 @@ def render_points(ax,pts):
     ax.set_aspect(1.0)
     ax.plot(xs,ys,'bo')
 
-def main():
-    #pts = pts_uni(numpts=200)
-    #pts = pts_ball(numpts=200)
-    #pts = pts_cubediam(numpts=200)
-    #pts = pts_normal(numpts=200)
-    #pts = pts_grid(numpts=200)
-    #pts = pts_clusnorm(numpts=200)
-    #pts = pts_concentric_circular_points(numpts=200,numrings=4)
-    #pts = pts_spokes(numpts=200)
-    #pts = pts_annulus(numpts=200)
-    pts = pts_annulus_random(numpts=200)
-    fig, ax = plt.subplots()
-    render_points(ax,pts)
-    plt.show()
+# def main():
+#     pts = pts_uni(numpts=200)
+#     pts = pts_ball(numpts=200)
+#     pts = pts_cubediam(numpts=200)
+#     pts = pts_normal(numpts=200)
+#     pts = pts_grid(numpts=200)
+#     pts = pts_clusnorm(numpts=200)
+#     pts = pts_concentric_circular_points(numpts=200,numrings=4)
+#     pts = pts_spokes(numpts=200)
+#     pts = pts_annulus(numpts=200)
+#     pts = pts_annulus_random(numpts=200)
+#     fig, ax = plt.subplots()
+#     render_points(ax,pts)
+#     plt.show()
 
-if __name__=="__main__":
-    main()
+# if __name__=="__main__":
+#     main()

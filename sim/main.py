@@ -31,6 +31,8 @@ def simulate(jobname, minpts, maxpts, interval, numrunsper,
              batch, cloudtype, which_comps, anomalies={}):
     """
     Main simulation function.
+        jobname:
+            name of the current simulation job
         minpts, maxpts, interval:
             integers delimiting sizes of point clouds to simulate
         numrunsper:
@@ -114,7 +116,8 @@ def simulate(jobname, minpts, maxpts, interval, numrunsper,
                 f.write(str(metadata))
             
             # generate num_in_batch point clouds of type cloudtype
-            # note it is crucial that the point clouds be sorted lexicographically
+            # note it is crucial that the points in each point cloud be sorted
+            # lexicographically
             pts = [sorted(globals()[cloudfuncname](numpts), key=lambda k: [k[0], k[1]]) \
                    for _ in range(num_in_batch)]
             graphfuncs = {graphid:func
@@ -143,14 +146,14 @@ def simulate(jobname, minpts, maxpts, interval, numrunsper,
                            for d in rets
                            for iteration, graph in d.items()}
                 graphs[name] = samples
-            print("done computing graphs")
+            print("Done computing graphs for NUMPTS " + str(numpts) + \
+                  ", BATCH NO. " + str(idx))
 
             # organize specifications for graph comparisons
             comp_details = {}
             for major_id in which_comps:
-                div = numpts if major_id in ['tour', 'bito'] else numpts-1
                 for minor_id in which_comps[major_id]:
-                    spec = [graphs[major_id], graphs[minor_id], div]
+                    spec = [graphs[major_id], graphs[minor_id]]
                     comp_details['_'.join([major_id, minor_id])] = spec
             manager = Manager()
             new_fracs = manager.dict()
@@ -185,7 +188,8 @@ def simulate(jobname, minpts, maxpts, interval, numrunsper,
                 with open(clouddir + "/data.txt", 'w') as f:
                     f.write(str({comp:{numpts:new_fracs[comp]}
                                  for comp in comparisons}))
-            print("done updating data file")
+            print("Done updating data file for NUMPTS " + str(numpts) + \
+                  ", BATCH NO. " + str(idx))
 
         # update compute-times.txt
         time_for_numpts = time.time()-s
@@ -243,5 +247,12 @@ cloudtype  = args.cloudtype
 comps      = eval(args.comps)
 anoms      = eval(args.anoms)
 
-simulate(jobname=jobname, minpts=minpts, maxpts=maxpts, interval=interval, numrunsper=numrunsper,
-         batch=batch, cloudtype=cloudtype, which_comps=comps, anomalies=anoms)
+simulate(jobname=jobname,
+         minpts=minpts,
+         maxpts=maxpts,
+         interval=interval,
+         numrunsper=numrunsper,
+         batch=batch,
+         cloudtype=cloudtype,
+         which_comps=comps,
+         anomalies=anoms)
