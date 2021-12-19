@@ -1,21 +1,21 @@
 # TSP-vs-Graphs
-TSP-vs-Graphs is part of ongoing research in the Computational Geometry Group at Stony Brook University. It includes programs to explore relations between traveling salesman problem (TSP) solutions and proximity graphs.
+TSP-vs-Graphs is a repository for studying relations between the traveling salesman problem (TSP) and proximity graphs.
 
-_TSP_ may refer to the TSP tour, TSP path, or bitonic TSP tour. Proximity graphs of interest include:
-- k-nearest neighbor graphs (primarily k=1, 2, 0.2n)
-- Minimum spanning tree (MST)
-- Gabriel graph
-- Urquhart graph
-- Order-k Delaunay (primarily k=0, 1, 2; where k=0 coincides with the Delaunay triangulation)
+The TSP tour, TSP path, and bitonic TSP tour are implemented and studied. Proximity graphs of interest include the k-nearest neighbor graph (k-NNG), minimum spanning tree (MST), Gabriel graph, Urquhart graph, and order-k Delaunay (primarily k=0, 1, 2).
 
-Some motivating questions are:
-- What fraction of TSP edges tend to be NNG (or MST, Gabriel, etc.) edges?
-- Must the TSP contain at least one NNG (or MST, Gabriel, etc.) edge?
-- Is the TSP always a subset of the order-k Delaunay for some k?
+## Contents
+1. [Setup](#setup)
+2. [Simulation](#simulation)
+3. [Graphical User Interface](#graphical-user-interface)
+4. [TSP-NNG Intersection Algorithm](#tsp-nng-intersection-algorithm)
 
 # Setup
-## Virtual environment
-Create an [Anaconda](https://www.anaconda.com) environment with the necessary libraries:
+Clone and `cd` into this repository:
+```
+git clone https://github.com/samvanderpoel/TSP-vs-Graphs
+cd TSP-vs-Graphs
+```
+Create a Conda environment (see [Anaconda](https://www.anaconda.com)) with the necessary libraries:
 ```
 conda create --name tsp python=3.7.3 pip
 conda activate tsp
@@ -29,14 +29,13 @@ cd pyconcorde
 pip install -e .
 cd ..
 ```
-[GNU Parallel](https://www.gnu.org/software/parallel/) is also required for this repository.
+[GNU Parallel](https://www.gnu.org/software/parallel/) is optionally used in the simulation code (see [Simulation Parameters](#simulation-parameters)).
 
-## Test program
-A small test simulation can be executed with `bash sim/test.sh`, the results of which will be stored in results/uniform-sqr-results.
+# Simulation
+Simulation jobs are specified in scripts having the format of srs/simulate.sh, and simulations are executed with `bash sim/simulate.sh`. Several jobs may be run concurrently as long as they have distinct `jobname`s.
 
-# Main simulation
-The main simulation is executed with `bash sim/simulate.sh`. All simulation parameters are specified at the top of sim/simulate.sh.
-## Simulation parameters
+## Simulation Parameters
+- `jobname` is the unique name identifying the current simulation job
 - `minpts` and `maxpts` delineate the min and max point cloud sizes to simulate
 - `interval` specifies the spacing between consecutive point cloud sizes
 - `numrunsper` specifies how many point clouds to simulate per point cloud size
@@ -46,3 +45,22 @@ The main simulation is executed with `bash sim/simulate.sh`. All simulation para
 - `anoms` specifies which 'anomalies' to check for and record (if found); must be formatted as a Python dictionary. For example, "{'tour_6del':'<1','path_mst':'==1'}" checks for point clouds whose TSP tours are not a subset of the order-6 Delaunay; and point clouds whose TSP paths are equal to the MST.
 - `par` specifies whether point cloud _types_ should be simulated in parallel (requires GNU's `parallel`)
 - `concurrently` specifies number of point cloud types to simulate concurrently (if `par` is true)
+
+## Test Program
+A test simulation can be executed with `bash sim/test.sh`, the results of which will be stored in results/test/uniform-sqr-results.
+
+## Printing a Summary of Simulation Results
+Existing data from job "myjob" are printed to standard output with
+```
+python sim/report_existing_data.py --jobname myjob
+```
+The optional flag ``--all`` verbosely prints data for each point cloud size, and the flag ``--export`` writes statistics to a csv file:
+```
+python sim/report_existing_data.py --jobname myjob --all --export
+```
+
+## Plotting Simulation Results
+
+# Graphical User Interface
+
+# TSP-NNG Intersection Algorithm

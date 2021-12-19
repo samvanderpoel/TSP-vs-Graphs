@@ -42,14 +42,17 @@ def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
         ys = r*yunit
         
         for x,y in zip(xs,ys):
-             rotmat =  np.asarray([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+             rotmat =  np.asarray([[np.cos(theta), -np.sin(theta)],
+                                   [np.sin(theta), np.cos(theta)]])
              xt,yt  =  np.linalg.matrix_power(rotmat,k).dot(np.asarray([x,y]))
              pts.append(r*np.asarray([xt,yt]))
 
     # place them uniformly on a disk with radius somewhere between the inner and outer radius
     if numptsrem:
-        xrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * np.cos( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
-        yrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * np.sin( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
+        xrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * \
+               np.cos( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
+        yrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * \
+               np.sin( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
         pts.extend(list(zip(xrem,yrem)))
     return np.asarray(pts)
 
@@ -149,7 +152,7 @@ def pts_grid(numpts):
     """
     Bentley #8. Choose numpts from a square grid that contains about 1.3*numpts points
     """
-    g = int(np.ceil(np.sqrt(1.3*numpts))) # grid size is `g x g (approx equal to) 1.3*N `
+    g = int(np.ceil(np.sqrt(1.3*numpts))) # grid size is `g x g (approx equal to) 1.3*N
     pts = []
     for x in range(g):
         for y in range(g):

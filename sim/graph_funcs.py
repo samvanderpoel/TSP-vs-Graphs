@@ -10,6 +10,7 @@ from sklearn.neighbors import NearestNeighbors # for KNNG
 from scipy.spatial import Delaunay # for Delaunay and Urquhart
 from scipy.spatial import Voronoi # for Gabriel
 from concorde.tsp import TSPSolver # for solve_tsp_from_file
+from networkx.algorithms.tree.mst import minimum_spanning_tree
 from orderk_delaunay import *
 from utils import *
 
@@ -17,10 +18,12 @@ from utils import *
 def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     n = len(points)
     if pct is not None:
-        print("Working on " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Working on " + str(100*pct) + "-percent NNG, numpts=" +  \
+              str(len(points)) + ", iteration " + str(iteration))
         k = math.ceil(pct * n)
     else:
-        print("Working on " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Working on " + str(k) + "-NNG, numpts=" + str(len(points)) + \
+              ", iteration " + str(iteration))
     points     = np.array(points)
     coords     = [{"pos":pt} for pt in points]
     nng_graph = nx.Graph()
@@ -44,12 +47,14 @@ def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     nng_graph.add_edges_from(edge_list)
     if pct is not None:
         nng_graph.graph['type']   = str(100*pct)+'-pct-nng'
-        nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
-        print("Finished computing " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        nng_graph.graph['weight'] =  None 
+        print("Finished computing " + str(100*pct) + "-percent NNG, numpts=" + \
+              str(len(points)) + ", iteration " + str(iteration))
     else:
         nng_graph.graph['type']   = str(k)+'nng'
-        nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
-        print("Finished computing " + str(k) + "-NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        nng_graph.graph['weight'] =  None 
+        print("Finished computing " + str(k) + "-NNG, numpts=" + \
+              str(len(points)) + ", iteration " + str(iteration))
 
     # multiprocessing:
     q.put({iteration:nng_graph})
@@ -57,7 +62,8 @@ def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
 #### Delaunay Triangulation ####
 def get_delaunay_tri_graph(points, q=None, iteration=None):
     if q is not None:
-        print("Working on Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Working on Delaunay, numpts=" + str(len(points)) + \
+              ", iteration " + str(iteration))
     points       = np.array(points)
     coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
@@ -81,7 +87,8 @@ def get_delaunay_tri_graph(points, q=None, iteration=None):
     deltri_graph.graph['weight'] = total_weight_of_edges
     deltri_graph.graph['type']   = 'dt'
     if q is not None:
-        print("Finished computing Delaunay, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Finished computing Delaunay, numpts=" + str(len(points)) + \
+              ", iteration " + str(iteration))
         # multiprocessing:
         q.put({iteration:deltri_graph})
     else:
@@ -89,7 +96,8 @@ def get_delaunay_tri_graph(points, q=None, iteration=None):
 
 #### MST ####
 def get_mst_graph(points, q, iteration):
-    print("Working on MST, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Working on MST, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     points = np.array(points)
     coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
@@ -106,9 +114,10 @@ def get_mst_graph(points, q, iteration):
         edge_wt = np.linalg.norm(pt1-pt2)
         deltri_graph.edges[n1,n2]['weight'] = edge_wt
 
-    mst_graph = nx.algorithms.tree.mst.minimum_spanning_tree(deltri_graph, algorithm='kruskal')
+    mst_graph = minimum_spanning_tree(deltri_graph, algorithm='kruskal')
     mst_graph.graph['type'] = 'mst'
-    print("Finished computing MST, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Finished computing MST, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     
     # multiprocessing:
     q.put({iteration:mst_graph})
@@ -116,7 +125,8 @@ def get_mst_graph(points, q, iteration):
 #### Gabriel ####
 def get_gabriel_graph(points, q=None, iteration=None):
     if q is not None:
-        print("Working on Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Working on Gabriel, numpts=" + str(len(points)) + \
+              ", iteration " + str(iteration))
     points = np.array(points)
     coords = [{"pos":pt} for pt in points]
     gabriel = nx.Graph()
@@ -151,7 +161,8 @@ def get_gabriel_graph(points, q=None, iteration=None):
             gabriel.add_edge(p1,p2)
     gabriel.graph['type'] = 'gabriel'
     if q is not None:
-        print("Finished computing Gabriel, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+        print("Finished computing Gabriel, numpts=" + str(len(points)) + \
+              ", iteration " + str(iteration))
         # multiprocessing:
         q.put({iteration:gabriel})
     else:
@@ -159,7 +170,8 @@ def get_gabriel_graph(points, q=None, iteration=None):
 
 #### Urquhart ####
 def get_urquhart_graph(points, q, iteration):
-    print("Working on Urquhart, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Working on Urquhart, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     points       = np.array(points)
     coords       = [{"pos":pt} for pt in points]
     tri          = Delaunay(points)
@@ -191,14 +203,16 @@ def get_urquhart_graph(points, q, iteration):
         total_weight_of_edges = total_weight_of_edges + edge_wt 
     urq_graph.graph['weight'] = total_weight_of_edges
     urq_graph.graph['type']   = 'urq'
-    print("Finished computing Urquhart, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Finished computing Urquhart, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     
     # multiprocessing:
     q.put({iteration:urq_graph})
 
 #### Bitonic ####
 def get_bitonic_tour(points, q, iteration):
-    print("Working on Bitonic TSP, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Working on Bitonic TSP, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     points = np.array(points)
     #points = sorted(points , key=lambda k: [k[0], k[1]])
     coords = [{"pos":pt} for pt in points]
@@ -234,7 +248,8 @@ def get_bitonic_tour(points, q, iteration):
         total_weight_of_edges = total_weight_of_edges + edge_wt 
     bitonic_tour.graph['weight'] = total_weight_of_edges
     bitonic_tour.graph['type']   = 'bitonic'
-    print("Finished computing Bitonic TSP, numpts=" + str(len(points)) + ", iteration " + str(iteration))
+    print("Finished computing Bitonic TSP, numpts=" + str(len(points)) + \
+          ", iteration " + str(iteration))
     
     # multiprocessing:
     q.put({iteration:bitonic_tour})
@@ -260,11 +275,14 @@ def generate_distance_matrix(pts, metric, mode):
 def write_distance_matrix_to_file(D,fname, dscale = 10000):
     with open(fname, 'w') as file:
         numrows, numcols = D.shape[0], D.shape[1]
-        assert numrows == numcols, "Number of rows and columns in distance matrix must be equal, as matrix of distances is square"
+        assert numrows == numcols, "Number of rows and columns in distance matrix" + \
+                                   " must be equal, as matrix of distances is square"
 
         file.write('NAME: sampleinstance\n')
         file.write('TYPE: TSP\n')
-        file.write('COMMENT: An explicit distance matrix between given set of points. Scaling factor (dscale) used for getting integer distance below = {dscale}\n'.format(dscale=dscale))
+        file.write('COMMENT: An explicit distance matrix between given set of points.' + \
+                   ' Scaling factor (dscale) used for getting integer distance below =' + \
+                   '  {dscale}\n'.format(dscale=dscale))
         file.write('DIMENSION: {dim}\n'.format(dim=numrows))
         file.write('EDGE_WEIGHT_TYPE: EXPLICIT\n')
         file.write('EDGE_WEIGHT_FORMAT: FULL_MATRIX\n')
@@ -272,7 +290,7 @@ def write_distance_matrix_to_file(D,fname, dscale = 10000):
         
         # it is essential that distances are integers, otherwise concorde crashes. 
         # this is also the reason for the scaling factor that has been introduced, 
-        # to make sure the original distances between the data are preserved as much as possible
+        # to ensure the original distances are preserved as much as possible
         for i in range(numrows):
             for j in range(numcols):
                 file.write('{value} \t'.format(value=int(dscale*D[i,j])) )
@@ -399,8 +417,8 @@ def get_kdelaunay_graph(points, order, q, iteration):
         for (v, w) in k_delaunay_edges
     ]
     k_delaunay.add_weighted_edges_from(edges)
-    print("Finished computing Order-" + str(order) + " Delaunay, numpts=" + str(len(points)) + \
-          ", iteration " + str(iteration))
+    print("Finished computing Order-" + str(order) + " Delaunay, numpts=" + \
+          str(len(points)) + ", iteration " + str(iteration))
 
     # multiprocessing
     q.put({iteration:k_delaunay})

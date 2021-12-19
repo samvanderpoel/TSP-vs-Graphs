@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 from termcolor import colored
 import csv
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--jobname', type=str, required=True)
@@ -27,18 +28,32 @@ types = ['uniform-sqr','annulus','annulus-rand','uniform-ball',
          'normal-clust','uniform-diam','corners','uniform-grid',
          'normal-bivar','spokes','concen-circ']
 dirnames = [name + '-results' for name in types]
-labels = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay', '2del':'Order-2 Delaunay',
-          'gab':'Gabriel', 'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST', 
-          'dmg':'Delaunay \\ Gabriel', '1nng':'1-NNG', 'bito':'Bitonic TSP', 'tour':'TSP Tour',
-          'path':'TSP Path'}
+templabs = {'20pt':'20% NNG', 'del':'Delaunay', '1del':'Order-1 Delaunay',
+            '2del':'Order-2 Delaunay', 'gab':'Gabriel', 'tour':'TSP Tour',
+            'path':'TSP Path', '2nng':'2-NNG', 'urq':'Urquhart', 'mst':'MST',
+            'dmg':'Delaunay \\ Gabriel', '1nng':'1-NNG', 'bito':'Bitonic TSP'}
 results = [['cloud_type', 'majorid', 'minorid', 'minpts', 'maxpts', 'min',
-            'pct25', 'median', 'mean', 'pct75', 'max', 'subset']]
+            'pct25', 'median', 'mean', 'pct75', 'max', 'stddev', 'subset']]
 
 for item in contents:
     itempath = os.path.join(jobpath, item)
     if os.path.isdir(itempath) and item in dirnames:
         try:
-            data = eval(open(os.path.join(itempath, 'data.txt'), 'r').read())
+            data = eval(open(itempath + '/data.txt', 'r').read())
+            which_comps = {}
+            for comp in data:
+                major_id, minor_id = comp.split('_')
+                if major_id not in which_comps:
+                    which_comps[major_id] = []
+                which_comps[major_id] += [minor_id]
+            graphs_to_compute = set(which_comps.keys()) | \
+                                set(graphid for v in which_comps.values() for graphid in v)
+            kdels_labs = {g:' '.join(['Order-'+str(g[:-3]), 'Delaunay']) \
+                          for g in graphs_to_compute if re.match("[0-9]+del", g)}
+            knngs_labs = {g:''.join([str(g[:-3]), '-NNG']) \
+                          for g in graphs_to_compute if re.match("[0-9]+nng", g)}
+            labels = {**templabs, **kdels_labs, **knngs_labs}
+
             print(colored('\n\n' + item[:-8].upper() + ' DATA:', 'green'))
             print(colored(55*'-', 'green'))
             for comp, v in data.items():
@@ -55,18 +70,21 @@ for item in contents:
                 ave     = round(np.mean(all_data), 3)
                 pct75   = round(np.percentile(all_data, 75), 3)
                 maximum = round(np.percentile(all_data, 100), 3)
-                print('min\t25\tmed\tmean\t75\tmax')
+                stdpts  = round(np.std(all_data), 3)
+                print('min\t25\tmed\tmean\t75\tmax\tstdev')
                 print(str(minimum) + '\t' + \
                       str(pct25)   + '\t' + \
                       str(median)  + '\t' + \
                       str(ave)     + '\t' + \
                       str(pct75)   + '\t' + \
-                      str(maximum))
+                      str(maximum) + '\t' + \
+                      str(stdpts))
                 subset = round(np.mean(all_data==1), 3)
                 print('Total number of point clouds simulated: ' + colored(str(numtot), 'yellow'))
                 print('Range of point cloud sizes: ' + colored(str(minpts) + ' to ' + str(maxpts), 'yellow'))
                 print('Fraction of point clouds whose intersection is 100%: ' + colored(str(subset), 'yellow'))
-                new_result = [item[:-8], majorid, minorid, minpts, maxpts, minimum, pct25, median, ave, pct75, maximum, subset]
+                new_result = [item[:-8], majorid, minorid, minpts, maxpts, minimum,
+                              pct25, median, ave, pct75, maximum, stdpts, subset]
                 results.append(new_result)
                 if not summary:
                     for num, data in v.items():
