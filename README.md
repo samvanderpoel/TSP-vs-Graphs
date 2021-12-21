@@ -32,7 +32,7 @@ cd ..
 [GNU Parallel](https://www.gnu.org/software/parallel/) is optionally used in the simulation code (see [Simulation Parameters](#simulation-parameters)).
 
 # Simulation
-Simulation jobs are specified in scripts having the format of srs/simulate.sh, and simulations are executed with `bash sim/simulate.sh`. Several jobs may be run concurrently as long as they have distinct `jobname`s.
+Simulation jobs are specified in scripts having the format of sim/simulate.sh, and simulations are executed with `bash sim/simulate.sh`. Several jobs may be run concurrently as long as they have distinct `jobname`s.
 
 ## Simulation Parameters
 - `jobname` is the unique name identifying the current simulation job
