@@ -16,5 +16,5 @@ for type in ${cloudtypes[@]}; do
     python sim/plot_simul_data.py --jobname=$jobname --cloudtype="${type}" \
         --comps=${compstd} --subdir="std/"
     python sim/plot_simul_data.py --jobname=$jobname --cloudtype="${type}" \
-        --comps=${compgdl} --subdir="gdl/" --mi 60
+        --comps=${compgdl} --subdir="gdl/" --mi 210
 done

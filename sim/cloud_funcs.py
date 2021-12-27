@@ -11,21 +11,23 @@ import scipy as sp
 import numpy as np
 import sys, os, time, random
 
-##-------------------------------------------------------------------------
 def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
     """
     Bentley #1. Uniform within the a rectangle of with specificed limits 
     on x and y coordintes. default is unit-square
+
+    IDENTIFIED IN OTHER SCRIPTS AS: uniform-sqr
     """
     xs = xlim[0] + abs(xlim[1]-xlim[0])*np.random.random(numpts)
     ys = ylim[0] + abs(ylim[1]-ylim[0])*np.random.random(numpts)
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
     """ Place points on consecutive nested concentric circles, with points 
     on each circle differing from previous circle by a scaling and rotation. 
     All circles have the same number of points on them
+
+    IDENTIFIED IN OTHER SCRIPTS AS: annulus
     """
     numptsperring = numpts//numrings
     numptsrem     = numpts%numrings
@@ -56,10 +58,10 @@ def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
         pts.extend(list(zip(xrem,yrem)))
     return np.asarray(pts)
 
-
-##-------------------------------------------------------------------------
 def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0):
-
+    """
+    IDENTIFIED IN OTHER SCRIPTS AS: annulus-rand
+    """
     pts = []
     while(len(pts)<numpts):
       x,y = - r_outer  + 2*r_outer * np.random.random(2)
@@ -70,10 +72,11 @@ def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0):
             continue
     return np.asarray(pts)
 
-##-------------------------------------------------------------------------
 def pts_ball(numpts, r=1):
     """
     Bentley #3. Uniform inside a circle of radius r
+
+    IDENTIFIED IN OTHER SCRIPTS AS: uniform-ball
     """
     xs,ys = [],[]
     pts   = []
@@ -86,11 +89,12 @@ def pts_ball(numpts, r=1):
             continue
     return np.asarray(pts)
 
-##-------------------------------------------------------------------------
 def pts_clusnorm(numpts, numclus=10 , mu=0,sigma=0.05):
     """
     Bentley #4. Choose numclus points from U[0,1]^2 then put 
     Normal(mu,sigma) at each
+
+    IDENTIFIED IN OTHER SCRIPTS AS: normal-clust
     """
     cluspts = pts_uni(numclus, xlim=[0,1], ylim=[0,1])
     pts     = []
@@ -109,22 +113,24 @@ def pts_clusnorm(numpts, numclus=10 , mu=0,sigma=0.05):
             pts.append(pt)
 
     return np.asarray(pts)
-        
-##-------------------------------------------------------------------------
+
 def pts_cubediam(numpts):
     """
     Bentley #5. x = y = U[0,1]. i.e. points are randomly chosen 
     along the diagonal of a square (called cube in bentley speak)
+
+    IDENTIFIED IN OTHER SCRIPTS AS: uniform-diam
     """
     xs = np.random.random(numpts)
     ys = xs
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_corners(numpts,numpolyverts=4,s=0.7):
     """
     Bentley #7. Uniform distribution at the vertices of a regular polygon 
     with `numpolyverts` vertices
+
+    IDENTIFIED IN OTHER SCRIPTS AS: corners
     """
     vx = [2.0 * np.cos(k*2.0*np.pi/numpolyverts) for k in range(numpolyverts)]
     vy = [2.0 * np.sin(k*2.0*np.pi/numpolyverts) for k in range(numpolyverts)]
@@ -147,10 +153,12 @@ def pts_corners(numpts,numpolyverts=4,s=0.7):
 
     assert len(pts) == numpts, "length of pts array should be the same as numpts returned"
     return np.asarray(pts)
-##-------------------------------------------------------------------------
+
 def pts_grid(numpts):
     """
     Bentley #8. Choose numpts from a square grid that contains about 1.3*numpts points
+
+    IDENTIFIED IN OTHER SCRIPTS AS: uniform-grid
     """
     g = int(np.ceil(np.sqrt(1.3*numpts))) # grid size is `g x g (approx equal to) 1.3*N
     pts = []
@@ -161,20 +169,22 @@ def pts_grid(numpts):
     pts   = [pts[r] for r in ridxs]
     return np.asarray(perturb_pts(pts))
 
-##-------------------------------------------------------------------------
 def pts_normal(numpts, mu=0.5, sigma=1):
     """
     Bentley #9. Each dimension independent from N(mu,sigma)
+
+    IDENTIFIED IN OTHER SCRIPTS AS: normal-bivar
     """
     xs = np.random.normal(loc=mu, scale=sigma,size=numpts)
     ys = np.random.normal(loc=mu, scale=sigma,size=numpts)
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_spokes(numpts):
     """
     Bentley #10. N/2 points at (U[0,1],1/2) 
     and N/2 points at (1/2,U[0,1])
+
+    IDENTIFIED IN OTHER SCRIPTS AS: spokes
     """
     nh   = numpts//2
     nrem = numpts-nh
@@ -185,8 +195,10 @@ def pts_spokes(numpts):
     pts = pts1+pts2
     return np.asarray(pts)
     
-##-------------------------------------------------------------------------
 def pts_concentric_circular_points(numpts, numrings):
+    """
+    IDENTIFIED IN OTHER SCRIPTS AS: concen-circ
+    """
     numpts_per_ring = int(numpts/numrings)
     points = []
     center = np.asarray([0.5,0.5])
@@ -208,6 +220,7 @@ def pts_concentric_circular_points(numpts, numrings):
 #########################
 # Auxiliary functions
 #########################
+
 def perturb_pts(points,xptb=0.001, yptb=0.001):
     """ For randomly perturbing (uniformly) the x coordinate and ycoordinate of points
     within an interval [x-xptb, x+xptb] and [y-yptb,y+yptb] for all points

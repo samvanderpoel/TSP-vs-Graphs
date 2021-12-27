@@ -16,6 +16,8 @@
 # par:                  true/false, should cloudtypes be simulated concurrently
 # concurrently:         if par is true, how many to simulate concurrently
 
+# SET SIMULATION PARAMETERS HERE:
+####################################################################
 jobname=job0
 minpts=10
 maxpts=70
@@ -25,12 +27,13 @@ batch=25
 cloudtypes=( uniform-sqr annulus-rand uniform-ball normal-clust corners normal-bivar spokes )
 tour="{'tour':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del','bito','path'],"
 path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
-bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
-nng="'1nng':['tour','path','bito']}"
+bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
 comps=$tour$path$bito$nng
 anoms="{}"
 par=true
 concurrently=2
+####################################################################
+
 
 mkdir tour-wds
 mkdir path-wds

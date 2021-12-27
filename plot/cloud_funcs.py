@@ -11,7 +11,6 @@ import scipy as sp
 import numpy as np
 import sys, os, time, random
 
-##-------------------------------------------------------------------------
 def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
     """
     Bentley #1. Uniform within the a rectangle of with specificed limits 
@@ -21,7 +20,6 @@ def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
     ys = ylim[0] + abs(ylim[1]-ylim[0])*np.random.random(numpts)
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
     """ Place points on consecutive nested concentric circles, with points 
     on each circle differing from previous circle by a scaling and rotation. 
@@ -53,8 +51,6 @@ def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
         pts.extend(list(zip(xrem,yrem)))
     return np.asarray(pts)
 
-
-##-------------------------------------------------------------------------
 def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0):
 
     pts = []
@@ -67,7 +63,6 @@ def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0):
             continue
     return np.asarray(pts)
 
-##-------------------------------------------------------------------------
 def pts_ball(numpts, r=1):
     """
     Bentley #3. Uniform inside a circle of radius r
@@ -83,7 +78,6 @@ def pts_ball(numpts, r=1):
             continue
     return np.asarray(pts)
 
-##-------------------------------------------------------------------------
 def pts_clusnorm(numpts, numclus=10 , mu=0,sigma=0.05):
     """
     Bentley #4. Choose numclus points from U[0,1]^2 then put 
@@ -106,8 +100,7 @@ def pts_clusnorm(numpts, numclus=10 , mu=0,sigma=0.05):
             pts.append(pt)
 
     return np.asarray(pts)
-        
-##-------------------------------------------------------------------------
+
 def pts_cubediam(numpts):
     """
     Bentley #5. x = y = U[0,1]. i.e. points are randomly chosen 
@@ -117,7 +110,6 @@ def pts_cubediam(numpts):
     ys = xs
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_corners(numpts,numpolyverts=4,s=0.7):
     """
     Bentley #7. Uniform distribution at the vertices of a regular polygon 
@@ -144,7 +136,7 @@ def pts_corners(numpts,numpolyverts=4,s=0.7):
 
     assert len(pts) == numpts, "length of pts array should be the same as numpts returned"
     return np.asarray(pts)
-##-------------------------------------------------------------------------
+
 def pts_grid(numpts):
     """
     Bentley #8. Choose numpts from a square grid that contains about 1.3*numpts points
@@ -158,7 +150,6 @@ def pts_grid(numpts):
     pts   = [pts[r] for r in ridxs]
     return np.asarray(perturb_pts(pts))
 
-##-------------------------------------------------------------------------
 def pts_normal(numpts, mu=0.5, sigma=1):
     """
     Bentley #9. Each dimension independent from N(mu,sigma)
@@ -167,7 +158,6 @@ def pts_normal(numpts, mu=0.5, sigma=1):
     ys = np.random.normal(loc=mu, scale=sigma,size=numpts)
     return np.asarray(list(zip(xs,ys)))
 
-##-------------------------------------------------------------------------
 def pts_spokes(numpts):
     """
     Bentley #10. N/2 points at (U[0,1],1/2) 
@@ -181,8 +171,7 @@ def pts_spokes(numpts):
 
     pts = pts1+pts2
     return np.asarray(pts)
-    
-##-------------------------------------------------------------------------
+
 def pts_concentric_circular_points(numpts, numrings):
     numpts_per_ring = int(numpts/numrings)
     points = []
@@ -200,4 +189,16 @@ def pts_concentric_circular_points(numpts, numrings):
         xrs = np.random.rand(num_points_rem)
         yrs = np.random.rand(num_points_rem)
         points.extend([np.asarray(pt) for pt in zip(xrs,yrs)])
+    return points
+
+def perturb_pts(points, xptb=0.001, yptb=0.001):
+    """ For randomly perturbing (uniformly) the x coordinate and ycoordinate of points
+    within an interval [x-xptb, x+xptb] and [y-yptb,y+yptb] for all points
+    Useful if we want to tweak an underlying point-distribution to remove degeneracies
+    """
+    points = np.asarray(points)
+    dxs    = -xptb + 2*xptb*np.random.random(len(points))
+    dys    = -yptb + 2*yptb*np.random.random(len(points))
+    dps    = np.asarray(list(zip(dxs,dys)))
+    points = points + dps
     return points

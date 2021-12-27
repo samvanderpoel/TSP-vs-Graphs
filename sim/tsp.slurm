@@ -15,16 +15,18 @@ module load gnu-parallel
 module load anaconda/3
 source activate tsp
 
-minpts=1510
-maxpts=1560
+jobname=seawulf
+minpts=1710
+maxpts=1760
 interval=50
 numrunsper=50
 batch=50
 cloudtypes=( uniform-sqr annulus-rand uniform-ball normal-clust corners normal-bivar spokes )
 tour="{'tour':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del','bito','path'],"
 path="'path':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
-bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del']}"
-comps=$tour$path$bito
+bito="'bito':['1nng','2nng','20pt','mst','gab','urq','del','1del','2del'],"
+nng="'1nng':['tour','path','bito']}"
+comps=$tour$path$bito$nng
 anoms="{}"
 par=true
 concurrently=7
@@ -37,7 +39,7 @@ if [ $par = true ] ; then
         rm sim/args.txt
     fi
     for type in ${cloudtypes[@]}; do
-        a="python sim/main.py --minpts=$minpts --maxpts=$maxpts "
+        a="python sim/main.py --jobname=\"$jobname\" --minpts=$minpts --maxpts=$maxpts "
         b="--interval=$interval --numrunsper=$numrunsper --batch=$batch "
         c="--cloudtype=$type --comps=\"$comps\" --anoms=\"$anoms\""
         echo $a$b$c >> sim/args.txt
@@ -45,16 +47,17 @@ if [ $par = true ] ; then
     parallel -j $concurrently < sim/args.txt &>/dev/null
     rm sim/args.txt
     for type in ${cloudtypes[@]}; do
-        echo "python sim/plot_simul_data.py --cloudtype=${type}" >> sim/args.txt
+        echo "python sim/plot_simul_data.py --jobname=\"$jobname\" --cloudtype=${type} --comps=${comps} --subdir=\"\"" >> sim/args.txt
     done
     parallel -j ${#cloudtypes[@]} < sim/args.txt
     rm sim/args.txt
 elif [ $par = false ] ; then
     for type in ${cloudtypes[@]}; do
-        python sim/main.py --minpts=$minpts --maxpts=$maxpts --interval=$interval \
-            --numrunsper=$numrunsper --batch=$batch --cloudtype="$type" \
-            --comps=${comps} --anoms=${anoms}
-        python sim/plot_simul_data.py --cloudtype="${type}"
+        python sim/main.py --jobname=$jobname --minpts=$minpts --maxpts=$maxpts \
+            --interval=$interval --numrunsper=$numrunsper --batch=$batch \
+            --cloudtype="$type" --comps=${comps} --anoms=${anoms}
+        python sim/plot_simul_data.py --jobname=$jobname --cloudtype="${type}" \
+            --comps=${comps} --subdir=""
     done
 fi
 

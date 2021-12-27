@@ -93,7 +93,7 @@ def read_simul_data(cloudtype, which_comps='all', subdir=''):
               'concen-circ':'Concentric Circular Points'}
     for major_id in which_comps:
         all_comps = ['_'.join([major_id, minor_id]) for minor_id in which_comps[major_id]]
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(dpi=500)
         ax.set_title("Comparison of edges in " + titles[major_id] + " and " + \
                      "Proximity Graphs\nSampling Type: " + sample[cloudtype],
                       fontdict={'fontsize':12})

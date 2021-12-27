@@ -274,9 +274,16 @@ def wrapperkeyPressHandler(fig,ax, run):
             render_graph(geometric_graph, fig, ax)
             fig.canvas.draw()    
         elif event.key in ['x', 'X']:
+            patchSize  = (xlim[1]-xlim[0])/180.0
             print('Removing network edges from canvas')
-            ax.lines=[]
+            ax.cla()                          
             applyAxCorrection(ax)
+            ax.set_xticks([])
+            ax.set_yticks([])                        
+            fig.texts = []
+            for pt in run.points:
+                ax.add_patch(mpl.patches.Circle(pt, radius = patchSize,
+                             facecolor='blue', edgecolor='black'))
             fig.canvas.draw()
         elif event.key in ['c', 'C']: 
             run.clearAllStates()
