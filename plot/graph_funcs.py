@@ -49,7 +49,7 @@ def get_nng_graph(points, k=None, pct=None, metric=2):
         nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
         print("Finished computing " + str(100*pct) + "-percent NNG, numpts=" + str(len(points)) + ", iteration " + str(iteration))
     else:
-        nng_graph.graph['type']   = str(k)+'nng'
+        nng_graph.graph['type']   = 'nng'
         nng_graph.graph['weight'] =  None # TODO, also edge weights for each edge!!!
     return nng_graph
 

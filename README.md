@@ -1,4 +1,7 @@
 # TSP-vs-Graphs
+
+<img src="example-graphs/aggregate.png" width="1000" height="200">
+
 TSP-vs-Graphs is a repository for studying relations between the traveling salesman problem (TSP) and proximity graphs.
 
 The TSP tour, TSP path, and bitonic TSP tour are implemented and studied. Proximity graphs of interest include the k-nearest neighbor graph (k-NNG), minimum spanning tree (MST), Gabriel graph, Urquhart graph, and order-k Delaunay (primarily k=0, 1, 2).
@@ -74,7 +77,7 @@ The results are stored in results/myjob/uniform-sqr/plots. The `--subdir` argume
 ## Graph comparison and anomaly detection
 Large-scale edgewise graph comparison is the primary purpose of the simulation API, but simulations can additionally be used to test graphs for other properties. The 'compare' function in sim/utils.py can be used to detect whether graphs satisfy a certain criterion and, if so, save the corresponding point cloud to a yaml file.
 
-Anomalies to search for (and record) may be specified in the `anoms` dictionary (see [Simulation Parameters](#simulation-parameters)), but importantly, specific criteria may be directly tested in the 'compare' function in sim/utils.py. For example, one may wish to test whether it is possible for the TSP tour to properly intersect the MST (one would test this when `comp=tour_mst`).
+Anomalies to search for (and record) may be specified in the `anoms` dictionary (see [Simulation Parameters](#simulation-parameters)), but importantly, specific criteria may be directly tested in the 'compare' function in sim/utils.py. For example, one may wish to test whether it is possible for the TSP tour to properly intersect the MST (one would test this when `comp=='tour_mst'`).
 
 # Graphical User Interface
 ## Basic interactive mode
