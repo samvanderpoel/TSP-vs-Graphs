@@ -217,6 +217,53 @@ def get_bitonic_tour(points):
     
     return bitonic_tour
 
+### ONION GRAPH ###
+def get_onion_graph(points):
+     from scipy.spatial import ConvexHull
+     points      = np.asarray(points)   
+     points = sorted(points , key=lambda k: [k[0], k[1]])  
+     points_tmp  = points.copy()
+     numpts      = len(points)
+     onion_graph = nx.Graph()
+     numpts_proc = - 1
+
+     def circular_edge_zip(xs):
+         xs = list(xs) # in the event that xs is of the zip or range type 
+         if len(xs) in [0,1] :
+              zipl = []
+         elif len(xs) == 2 :
+              zipl = [(xs[0],xs[1])]
+         else:
+              zipl = list(zip(xs,xs[1:]+xs[:1]))
+         return zipl
+
+     while len(points_tmp) >= 3:
+           hull            = ConvexHull(points_tmp)
+           pts_on_hull     = [points_tmp[i] for i in hull.vertices]
+           coords          = [{"pos":pt} for pt in pts_on_hull]
+           new_node_idxs   = range(numpts_proc+1, numpts_proc+len(hull.vertices)+1)
+           onion_graph.add_nodes_from(zip(new_node_idxs, coords))
+           onion_graph.add_edges_from(circular_edge_zip(new_node_idxs))
+           numpts_proc  = numpts_proc + len(hull.vertices)
+           rem_pts_idxs = list(set(range(len(points_tmp)))-set(hull.vertices)) 
+           points_tmp   = [ points_tmp[idx] for idx in rem_pts_idxs ]
+           coords       = [{"pos":pt} for pt in points]
+
+     if len(points_tmp) == 2:
+          p, l = numpts_proc+1, numpts_proc+2
+          onion_graph.add_node(p)
+          onion_graph.add_node(l)
+          onion_graph.nodes[p]['coods'] = points_tmp[0]
+          onion_graph.nodes[l]['coods'] = points_tmp[1]
+          onion_graph.add_edge(p,l)
+     elif len(points_tmp) == 1:
+          l = numpts_proc+1 
+          onion_graph.add_node(l)
+          onion_graph.nodes[l]['cood'] = points_tmp[0]
+ 
+     onion_graph.graph['type'] = 'onion'
+     return onion_graph
+
 ##### Generate Distance matrix ##### 
 def generate_distance_matrix(pts, metric, mode):
     N   = len(pts)

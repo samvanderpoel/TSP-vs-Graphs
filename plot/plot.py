@@ -81,8 +81,9 @@ def run_handler(points=[]):
     fig, ax =  plt.subplots()
     run = TSPNNGInput(points=points)
     
-    ax.set_xlim([xlim[0], xlim[1]])
-    ax.set_ylim([ylim[0], ylim[1]])
+    buff = max(xlim[1] - xlim[0], ylim[1] - ylim[0]) / 10
+    ax.set_xlim([xlim[0] - buff, xlim[1] + buff])
+    ax.set_ylim([ylim[0] - buff, ylim[1] + buff])
     ax.set_aspect(1.0)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -94,7 +95,7 @@ def run_handler(points=[]):
                      facecolor='blue', edgecolor='black'))
 
     ax.set_title('Points Inserted: ' + str(len(run.points)), \
-                   fontdict={'fontsize':25})
+                   fontdict={'fontsize':12})
     applyAxCorrection(ax)
     fig.canvas.draw()
 
@@ -126,80 +127,82 @@ def wrapperEnterRunPointsHandler(fig, ax, run):
                              facecolor='blue', edgecolor='black'))
 
             ax.set_title('Points Inserted: ' + str(len(run.points)), \
-                          fontdict={'fontsize':25})
+                          fontdict={'fontsize':12})
             applyAxCorrection(ax)
             fig.canvas.draw()
 
     return _enterPointsHandler
 
-def wrapperkeyPressHandler(fig,ax, run): 
+def wrapperkeyPressHandler(fig,ax, run):
+
     def _keyPressHandler(event):
-        if event.key in ['n', 'N', 'u', 'U','m','M','o','O','g','G']: 
-            numpts = int(input("\nHow many points should I generate?: ")) 
+        if event.key in ['n', 'N']:
+
             run.clearAllStates()
             ax.cla()
             applyAxCorrection(ax)
-
             ax.set_xticks([])
             ax.set_yticks([])
             fig.texts = []
-                                  
-            if event.key in ['u', 'U'] : 
+
+            numpts = int(input("\nHow many points should I generate?: "))
+            smpl_str = input("\nEnter code for sampling type:                               \n" +\
+                             "(usqr)      Uniform on the unit square                        \n" +\
+                             "(uball)     Uniform on the unit disk                          \n" +\
+                             "(bivar)     Bivariate normal                                  \n" +\
+                             "(clus)      Bivariate normal at several modes in unit square  \n" +\
+                             "(ann)       Non-random points on concentric circles           \n" +\
+                             "(annrand)   Random points in an annulus                       \n" +\
+                             "(corners)   Uniform distrs. centered at corners of a square   \n" +\
+                             "(grid)      Random points on a grid (having 1.3*N gridpoints) \n" +\
+                             "(spokes)    N/2 points at (U[0,1], 0.5) and (0.5, U[0,1])     \n" +\
+                             "(concen)    Non-random concentric circular points             \n")
+            smpl_str = smpl_str.lstrip()
+            if smpl_str == 'usqr':
                 run.points = sorted(pts_uni(numpts), key=lambda k: [k[0], k[1]])
-            elif event.key in ['m', 'M']:
-                nummodes   = int(input("How many modes do you want in the distribution?"))
-                sigma      = float(input("What do you want the standard deviation of the local distribution around each mode to be?"))
-                run.points = sorted(pts_clusnorm(numpts, numclus=nummodes , mu=0, sigma=sigma), key=lambda k: [k[0], k[1]])
-            elif event.key in ['o', 'O']:
-                numrings   = int(input("How many rings do you want?"))
-                run.points = sorted(pts_concentric_circular_points(numpts, numrings=numrings), key=lambda k: [k[0], k[1]])
-            elif event.key in ['g', 'G']:
-                numrows    = int(input("How many rows do you want?"))
+            elif smpl_str == 'uball':
+                run.points = sorted(pts_ball(numpts, r=1), key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'bivar':
+                sigma      = float(input("Enter standard deviation (typical value: 0.05): "))
+                run.points = sorted(pts_normal(numpts, mu=0.5, sigma=sigma), key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'clus':
+                nummodes   = int(input("Enter number of modes: "))
+                sigma      = float(input("Enter standard deviation about each mode (typical value: 0.05): "))
+                run.points = sorted(pts_clusnorm(numpts, numclus=nummodes,
+                                                 mu=0, sigma=sigma), key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'ann':
+                run.points = sorted(pts_annulus(numpts, r_inner=1.0, r_outer=2.0,
+                                    numrings=10, theta=np.pi/6), key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'annrand':
+                run.points = sorted(pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0),
+                                    key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'corners':
+                run.points = sorted(pts_corners(numpts, numpolyverts=4, s=0.7),
+                                    key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'grid':
                 run.points = sorted(pts_grid(numpts), key=lambda k: [k[0], k[1]])
-            else:
-                print("I did not understand that option. Please type one of `n`, `u`, `m`, `o`, `g`")
+            elif smpl_str == 'spokes':
+                run.points = sorted(pts_spokes(numpts), key=lambda k: [k[0], k[1]])
+            elif smpl_str == 'concen':
+                numrings = int(input("Enter number of concentric rings: "))
+                run.points = sorted(pts_concentric_circular_points(numpts, numrings),
+                                    key=lambda k: [k[0], k[1]])
 
+            run.points = shift_and_scale_to_unit_square(run.points)
             patchSize  = (xlim[1]-xlim[0])/180
-
-            for site in run.points:      
-                ax.add_patch(mpl.patches.Circle(site, radius = patchSize, \
+            for point in run.points:     
+                ax.add_patch(mpl.patches.Circle(point, radius = patchSize, \
                              facecolor='blue',edgecolor='black' ))
+            ax.set_title('Points generated: ' + str(len(run.points)), fontdict={'fontsize':12})
+            applyAxCorrection(ax)
+            fig.canvas.draw()
 
-            ax.set_title('Points generated: ' + str(len(run.points)), fontdict={'fontsize':20})
-            fig.canvas.draw()                   
         elif event.key in ['t' or 'T']:
             tsp_graph = get_tsp_graph(run.points, mode='tour', typ='poly')
-            # graph_fns = [(get_delaunay_tri_graph, 'Delaunay Triangulation (D)'), \
-            #              (get_mst_graph         , 'Minimum Spanning Tree (M)'), \
-            #              (get_gabriel_graph     , 'Gabriel'),\
-            #              (get_urquhart_graph    , 'Urquhart') ]
-
-            # from functools import partial
-            # for k in range(1,5): 
-            #     graph_fns.append((partial(get_nng_graph, k=k), str(k)+'_NNG'))
-
-            # tbl             = PrettyTable()
-            # tbl.field_names = ["Spanning Graph (G)", "G", "G \cap T", "T", "(G \cap T)/T"]
-            # num_tsp_edges   = len(tsp_graph.edges)
-
-            # for ctr, (fn_body, fn_name) in zip(range(1,1+len(graph_fns)), graph_fns):
-            #     geometric_graph = fn_body(run.points)
-            #     num_graph_edges = len(geometric_graph.edges)
-            #     common_edges    = list_common_edges(tsp_graph, geometric_graph)
-            #     num_common_edges_with_tsp = num_common_edges(tsp_graph, geometric_graph)
-
-            #     tbl.add_row([fn_name,                 \
-            #                  num_graph_edges,           \
-            #                  num_common_edges_with_tsp, \
-            #                  num_tsp_edges,             \
-            #                  "{perc:3.2f}".format(perc=1e2*num_common_edges_with_tsp/num_tsp_edges)+ ' %' ])
-                                 
-            # print("Table of number of edges in indicated graph")
-            # print(tbl)
             render_graph(tsp_graph, fig, ax)
             fig.canvas.draw()
         elif event.key in ['i', 'I']:                     
-            algo_str = input("Enter code for the graph you need to span the points:           \n" +\
+            algo_str = input("\nEnter code for the graph you need to span the points:         \n" +\
                              "(knng)      k-Nearest Neighbor Graph                            \n" +\
                              "(mst)       Minimum Spanning Tree                               \n" +\
                              "(onion)     Onion                                               \n" +\
@@ -219,8 +222,8 @@ def wrapperkeyPressHandler(fig,ax, run):
             elif algo_str == 'mst':
                 geometric_graph = get_mst_graph(run.points)
 
-            # elif algo_str == 'onion':
-            #     geometric_graph = get_onion_graph(run.points)
+            elif algo_str == 'onion':
+                geometric_graph = get_onion_graph(run.points)
 
             elif algo_str == 'gab':
                 geometric_graph = get_gabriel_graph(run.points)
@@ -265,12 +268,15 @@ def wrapperkeyPressHandler(fig,ax, run):
             print(87*"-")
             print("Number of edges in " + algo_str + " graph:", len(geometric_graph.edges))
             print("\nNumber of edges in Concorde (Euclidean) TSP tour:", len(tsp_tour.edges))
-            print("Number of edges in intersection of " + algo_str + " and Concorde (Euclidean) TSP tour:", n_common_edges_tour)
+            print("Number of edges in intersection of " + algo_str + \
+                  " and Concorde (Euclidean) TSP tour:", n_common_edges_tour)
             print("\nNumber of edges in Concorde (Euclidean) TSP path:", len(tsp_path.edges))
-            print("Number of edges in intersection of " + algo_str + " and Concorde (Euclidean) TSP path:", n_common_edges_path)
+            print("Number of edges in intersection of " + algo_str + \
+                  " and Concorde (Euclidean) TSP path:", n_common_edges_path)
             print(87*"-")
 
-            ax.set_title("Graph Type: " + geometric_graph.graph['type'] + '\n Number of nodes: ' + str(len(run.points)), fontdict={'fontsize':25})
+            ax.set_title("Graph Type: " + geometric_graph.graph['type'] + \
+                         "\n Number of nodes: " + str(len(run.points)), fontdict={'fontsize':12})
             render_graph(geometric_graph, fig, ax)
             fig.canvas.draw()    
         elif event.key in ['x', 'X']:
@@ -305,26 +311,29 @@ def num_common_edges(g1, g2):
     return num_common
 
 def shift_and_scale_to_unit_square(points):
-     
-    # make all coordinates positive by shifting origin
+    """
+    Shifts and scales points so that center of mass is at (0.5, 0.5)
+    and all points lie in the unit square
+    """
     points = [np.asarray(pt) for pt in points]
-    min_x  = min([x for (x,_) in points])
-    min_y  = min([y for (_,y) in points])
-    m      = min(min_x, min_y)
-    origin = np.asarray([m,m])
-
-    # scale to unit-square
-    points = [pt - origin for pt in points]
-    max_x  = max([x for (x,_) in points])
-    max_y  = max([y for (_,y) in points])
-    scale  = max(max_x,max_y)
-    points = [pt/scale for pt in points]
-
-    return points
+    avg_x = np.mean([x for (x,_) in points])
+    avg_y = np.mean([y for (_,y) in points])
+    trans_vec = np.asarray([0.5-avg_x, 0.5-avg_y])
+    trans_pts = [pt + trans_vec for pt in points]
+    x_range = max([x-0.5 for (x,_) in points]) - min([x-0.5 for (x,_) in points])
+    y_range = max([y-0.5 for (_,y) in points]) - min([y-0.5 for (_,y) in points])
+    scale_fac = max(x_range, y_range)
+    new_pts = [np.asarray([0.5 + (x-0.5)/scale_fac, 0.5 + (y-0.5)/scale_fac])
+               for (x,y) in trans_pts]
+    return new_pts
 
 def applyAxCorrection(ax):
-    ax.set_xlim([xlim[0], xlim[1]])
-    ax.set_ylim([ylim[0], ylim[1]])
+    buff = max(xlim[1] - xlim[0], ylim[1] - ylim[0]) / 10
+    ax.set_xlim([xlim[0] - buff, xlim[1] + buff])
+    ax.set_ylim([ylim[0] - buff, ylim[1] + buff])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.axis('off') # turn off box surrounding plot
     ax.set_aspect(1.0)
 
 def clearPatches(ax):
@@ -346,28 +355,20 @@ def render_graph(G,fig,ax):
     if G is None:
         return None
     edgecol = None
-    if G.graph['type'] == 'mst':
-        edgecol = 'g'
-    elif G.graph['type'] == 'onion':
-        edgecol = 'gray'
-    elif G.graph['type'] == 'gabriel':
-        edgecol = (153/255, 102/255, 255/255)
-    elif G.graph['type'] == 'urq':
-        edgecol = (255/255, 102/255, 153/255)
-    elif G.graph['type'] in ['conc','pytsp']:
-        edgecol = 'r'
-    elif G.graph['type'] == 'dt':
-        edgecol = 'b'
-    elif G.graph['type'][-3:] == 'nng':
-        edgecol = 'm'
-    elif G.graph['type'] == 'bitonic':
-        edgecol = (153/255, 0/255, 0/255)
-    elif G.graph['type'] == 'pypath':
-        edgecol = (255/255, 0/255, 0/255)
-    elif G.graph['type'] == 'concorde':
-        edgecol = (255/255 , 99/255, 71/255)
-    elif G.graph['type'] =='kdel':
-        edgecol = (255/255,0/255,255/255)
+    edgecols = {'mst':'g',
+                'onion':'gray',
+                'gabriel':(153/255, 102/255, 255/255),
+                'urq':(255/255, 102/255, 153/255),
+                'conc':'r',
+                'pytsp':'r',
+                'dt':'b',
+                'nng':'m',
+                'bitonic':(153/255, 0/255, 0/255),
+                'pypath':(255/255, 0/255, 0/255),
+                'concorde':(255/255 , 99/255, 71/255),
+                'kdel':(255/255,0/255,255/255)}
+    if G.graph['type'] in edgecols:
+        edgecol = edgecols[G.graph['type']]
     if G.graph['type'] not in ['poly']:
           #for elt in list(G.nodes(data=True)):
           #     print(elt)
@@ -381,12 +382,11 @@ def render_graph(G,fig,ax):
         for (nidx1, nidx2) in dfs_edges(G):
             node_coods.append(G.nodes[nidx1]['pos'])
             node_coods.append(G.nodes[nidx2]['pos'])
-
         node_coods = np.asarray(node_coods)
 
         # mark the nodes
-        xs = [pt[0] for pt in node_coods ]
-        ys = [pt[1] for pt in node_coods ]
+        xs = [pt[0] for pt in node_coods]
+        ys = [pt[1] for pt in node_coods]
         ax.scatter(xs,ys)
 
         polygon = Polygon(node_coods, closed=True, alpha=0.40, \
@@ -394,7 +394,7 @@ def render_graph(G,fig,ax):
                           edgecolor='k', linewidth=0.4)
         ax.add_patch(polygon)
 
-    ax.axis('off') # turn off box surrounding plot
+    applyAxCorrection(ax)
     fig.canvas.draw()
 
 if __name__=='__main__':
