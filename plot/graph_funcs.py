@@ -18,6 +18,18 @@ def ccw(A,B,C):
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
+def perturb_pts(points, xptb=0.001, yptb=0.001):
+    """ For randomly perturbing (uniformly) the x coordinate and ycoordinate of points
+    within an interval [x-xptb, x+xptb] and [y-yptb,y+yptb] for all points
+    Useful if we want to tweak an underlying point-distribution to remove degeneracies
+    """
+    points = np.asarray(points)
+    dxs    = -xptb + 2*xptb*np.random.random(len(points))
+    dys    = -yptb + 2*yptb*np.random.random(len(points))
+    dps    = np.asarray(list(zip(dxs,dys)))
+    points = points + dps
+    return points
+
 #### NNG ####
 def get_nng_graph(points, k=None, pct=None, metric=2):
     n = len(points)
@@ -179,8 +191,8 @@ def get_urquhart_graph(points):
 
 #### Bitonic ####
 def get_bitonic_tour(points):
-    points = np.array(points)
-    #points = sorted(points , key=lambda k: [k[0], k[1]])
+    points = perturb_pts(np.array(points))
+    points = sorted(points , key=lambda k: [k[0], k[1]])
     coords = [{"pos":pt} for pt in points]
     bitonic_tour = nx.Graph()
     bitonic_tour.add_nodes_from(zip(range(len(points)), coords))

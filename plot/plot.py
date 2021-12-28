@@ -358,14 +358,14 @@ def render_graph(G,fig,ax):
     edgecols = {'mst':'g',
                 'onion':'gray',
                 'gabriel':(153/255, 102/255, 255/255),
-                'urq':(255/255, 102/255, 153/255),
+                'urq':(0,0,0),
                 'conc':'r',
                 'pytsp':'r',
                 'dt':'b',
                 'nng':'m',
                 'bitonic':(153/255, 0/255, 0/255),
                 'pypath':(255/255, 0/255, 0/255),
-                'concorde':(255/255 , 99/255, 71/255),
+                'concorde':(153/255,50/255,204/255),
                 'kdel':(255/255,0/255,255/255)}
     if G.graph['type'] in edgecols:
         edgecol = edgecols[G.graph['type']]
