@@ -1,6 +1,6 @@
 # TSP-vs-Graphs
 
-<img src="example-graphs/aggregate.png" width="1000" height="200">
+<img src="example-graphs/aggregate.png" width=max-width>
 
 TSP-vs-Graphs is a repository for studying relations between the traveling salesman problem (TSP) and proximity graphs.
 
