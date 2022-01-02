@@ -118,7 +118,7 @@ def wrapperEnterRunPointsHandler(fig, ax, run):
             run.points.append( newPoint  )
             print("You inserted ", newPoint)
 
-            patchSize  = (xlim[1]-xlim[0])/180.0
+            patchSize = (xlim[1]-xlim[0])/180.0
                    
             ax.clear()
 
@@ -234,9 +234,6 @@ def wrapperkeyPressHandler(fig,ax, run):
             elif algo_str == 'dt':
                 geometric_graph = get_delaunay_tri_graph(run.points)
 
-            # elif algo_str == 'tspincr':
-            #     geometric_graph = get_tsp_incr_graph(run.points)
-
             elif algo_str == 'bitonic':
                 geometric_graph = get_bitonic_tour(run.points)
 
@@ -261,24 +258,26 @@ def wrapperkeyPressHandler(fig,ax, run):
                 print("I did not recognize that option.")
                 geometric_graph = None
 
-            tsp_tour = get_tsp_graph(run.points, mode='tour')
-            tsp_path = get_tsp_graph(run.points, mode='path')
-            n_common_edges_tour = num_common_edges(tsp_tour, geometric_graph)
-            n_common_edges_path = num_common_edges(tsp_path, geometric_graph)
-            print(87*"-")
-            print("Number of edges in " + algo_str + " graph:", len(geometric_graph.edges))
-            print("\nNumber of edges in Concorde (Euclidean) TSP tour:", len(tsp_tour.edges))
-            print("Number of edges in intersection of " + algo_str + \
-                  " and Concorde (Euclidean) TSP tour:", n_common_edges_tour)
-            print("\nNumber of edges in Concorde (Euclidean) TSP path:", len(tsp_path.edges))
-            print("Number of edges in intersection of " + algo_str + \
-                  " and Concorde (Euclidean) TSP path:", n_common_edges_path)
-            print(87*"-")
-
             ax.set_title("Graph Type: " + geometric_graph.graph['type'] + \
                          "\n Number of nodes: " + str(len(run.points)), fontdict={'fontsize':12})
             render_graph(geometric_graph, fig, ax)
-            fig.canvas.draw()    
+            fig.canvas.draw()
+
+            comp = input("\nCompare edges with those of the Euclidean TSP? ")
+            if 'y' in comp.lower():
+                tsp_tour = get_tsp_graph(run.points, mode='tour')
+                tsp_path = get_tsp_graph(run.points, mode='path')
+                n_common_edges_tour = num_common_edges(tsp_tour, geometric_graph)
+                n_common_edges_path = num_common_edges(tsp_path, geometric_graph)
+                print(87*"-")
+                print("Number of edges in " + algo_str + " graph:", len(geometric_graph.edges))
+                print("\nNumber of edges in Concorde (Euclidean) TSP tour:", len(tsp_tour.edges))
+                print("Number of edges in intersection of " + algo_str + \
+                      " and Concorde (Euclidean) TSP tour:", n_common_edges_tour)
+                print("\nNumber of edges in Concorde (Euclidean) TSP path:", len(tsp_path.edges))
+                print("Number of edges in intersection of " + algo_str + \
+                      " and Concorde (Euclidean) TSP path:", n_common_edges_path)
+                print(87*"-")   
         elif event.key in ['x', 'X']:
             patchSize  = (xlim[1]-xlim[0])/180.0
             print('Removing network edges from canvas')
@@ -375,7 +374,7 @@ def render_graph(G,fig,ax):
         for  (nidx1, nidx2) in G.edges:
             x1, y1 = G.nodes[nidx1]['pos']
             x2, y2 = G.nodes[nidx2]['pos']
-            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=0.8)
+            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=1.0)
     else:
         from networkx.algorithms.traversal.depth_first_search import dfs_edges
         node_coods = []
@@ -385,13 +384,14 @@ def render_graph(G,fig,ax):
         node_coods = np.asarray(node_coods)
 
         # mark the nodes
+        patchSize = (xlim[1]-xlim[0])/180.0
         xs = [pt[0] for pt in node_coods]
         ys = [pt[1] for pt in node_coods]
-        ax.scatter(xs,ys)
+        ax.scatter(xs, ys, s = 0.5)
 
         polygon = Polygon(node_coods, closed=True, alpha=0.40, \
-                          facecolor=(72/255,209/255,204/255,0.4), \
-                          edgecolor='k', linewidth=0.4)
+                          facecolor=(72/255,209/255,204/255, 0.4), \
+                          edgecolor='k', linewidth=1.0)
         ax.add_patch(polygon)
 
     applyAxCorrection(ax)

@@ -81,25 +81,29 @@ Anomalies to search for (and record) may be specified in the `anoms` dictionary 
 
 # Graphical User Interface
 ## Basic interactive mode
-A blank GUI is launched with
+The GUI is launched with
 ```
 python plot/plot.py --interactive
 ```
-Points may be double-clicked directly onto the canvas. To compute graphs for a point cloud on the canvas, the current window must be the GUI canvas, and press `i`. You will see a set of options appear in the terminal; type and enter the string associated with the graph you would like to compute.
+Points may be double-clicked directly onto the canvas. To compute graphs for a point cloud on the canvas, the current window must be the GUI canvas, and press `i`. You will see a set of options appear in the terminal; enter the string associated with the graph you would like to compute.
 
-To clear all edges on the current point cloud, press `x`; to clear all points and edges, press `c`.
+To clear all edges from the current point cloud, press `x`; to clear all points and edges, press `c`.
 
-Points clouds may be sampled from various distributions by selecting the canvas and pressing one of the following keys: 'u' for uniform, 'm' for multimodal normal, or 'o' for concentric circles.
+Points clouds may be sampled from various distributions. Press `n` (with the GUI as the current window) to see a list of options; enter the string corresponding with the distribution you would like to sample from.
 
-## Plotting a point cloud from a YAML file
-To plot, for example, the point cloud stored in example-graphs/nng/tour-nng-ce-16.yaml, run:
+## Plotting a point cloud from YAML
+All point clouds are stored in .yaml files in this repository. To plot, for instance, TSPLIB instance TSP225, run
 ```
-python plot/plot.py --file example-graphs/nng/tour-nng-ce-16.yaml
+python plot/plot.py --file tsplib/instances/euclidean_instances/tsp225.yaml
 ```
+Pressing `t` will compute the TSP tour and display the following:
+
+<p align="center">
+  <img src="example-graphs/tsplib.png" width=500>
+</p>
 
 # Example Graphs
 Coordinates are provided for salient point clouds.
-## Examples related to the order-k Delaunay
 
 # TSP-NNG Intersection Algorithm
-The main TSP-NNG algorithm is described in tspnng/tspnng-pseudocode.pdf and implemented in tspnng/tournng.py. The script tspnng/runtournng.sh shows how to execute the algorithm for specific values of n and user-specified amounts of parallelism (provided by GNU parallel and Python multiprocessing).
+The main TSP-NNG algorithm is described in tspnng/tspnng-pseudocode.pdf and implemented in tspnng/tournng.py. The script tspnng/runtournng.sh shows how to execute the algorithm for specific values of n and user-specified amounts of parallelism (provided by GNU parallel and Python multiprocessing). The program tspnng/runtournng.sh should be run from the tspnng directory.
