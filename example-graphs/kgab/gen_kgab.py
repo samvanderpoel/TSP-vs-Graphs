@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, required=True)
 n = parser.parse_args().n
 
-fname = 'pointsets/kgab/gab' + str(n) + '.yaml'
+fname = 'example-graphs/kgab/gab' + str(n) + '.yaml'
 
 with open(fname, 'w') as f:
     lines = ['points:\n', '  - [0,0]\n']

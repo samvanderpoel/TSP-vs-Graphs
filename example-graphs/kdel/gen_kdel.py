@@ -7,7 +7,7 @@ parser.add_argument('--k', type=int, required=True)
 mode = parser.parse_args().mode
 k = parser.parse_args().k
 
-fname = 'pointsets/kdel/' + mode + '-' + str(k) + 'del.yaml'
+fname = 'example-graphs/kdel/' + mode + '-' + str(k) + 'del.yaml'
 
 with open(fname, 'w') as f:
     if mode == 'tour':
