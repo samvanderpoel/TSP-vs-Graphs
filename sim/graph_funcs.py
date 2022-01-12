@@ -311,6 +311,18 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric='2'):
     n = len(points)
     coords = [{"pos":pt} for pt in points]
     tsp_graph = nx.Graph()
+    tsp_graph.add_nodes_from(zip(range(len(points)), coords))
+    if n == 3:
+        tsp_graph.add_edges_from([[0,1],[1,2],[2,0]])
+        tsp_graph.graph['type'] = typ
+        tsp_graph.graph['weight'] = 0.0
+        for n1, n2 in tsp_graph.edges:
+            pt1 = tsp_graph.nodes[n1]['pos'] 
+            pt2 = tsp_graph.nodes[n2]['pos']
+            edge_wt = np.linalg.norm(pt1-pt2)
+            tsp_graph.edges[n1,n2]['weight'] = edge_wt
+            tsp_graph.graph['weight'] += edge_wt 
+        return tsp_graph
 
     cwd = os.getcwd()
     new_wd = os.path.join(cwd,
@@ -335,7 +347,6 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric='2'):
 
     # get solution inds and add nodes
     idxs_along_tsp = list(solution.tour)
-    tsp_graph.add_nodes_from(zip(range(len(points)), coords))
 
     # add correct edges to graph
     if mode=='tour':

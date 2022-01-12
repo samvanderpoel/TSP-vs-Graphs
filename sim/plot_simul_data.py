@@ -102,7 +102,7 @@ def read_simul_data(cloudtype, which_comps='all', subdir=''):
         maxpts = min(ma, max(all_numpts))
         # ax.set_xlim([minpts-10,maxpts+10])
         # ax.set_ylim([0,1.1])
-        ax.set_xlabel("Point cloud size")
+        ax.set_xlabel("Point set size")
         ax.set_ylabel("Fraction of " + titles[major_id] + " Edges in Graph")
         for comp in all_comps:
             major_id, minor_id = comp.split('_')

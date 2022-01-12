@@ -14,5 +14,5 @@ for comp in data1:
         else:
             data2[comp][num] = data1[comp][num]
 
-with open(os.path.join(dest, "data.txt"), 'w') as f:
+with open(os.path.join(dest), 'w') as f:
     f.write(str(data2))
