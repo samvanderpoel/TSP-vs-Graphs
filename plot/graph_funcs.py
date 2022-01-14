@@ -47,7 +47,7 @@ def get_nng_graph(points, k=None, pct=None, metric=2):
         nbrs = NearestNeighbors(n_neighbors=(k+1),
                                 algorithm='ball_tree',
                                 metric='minkowski',
-                                p=int(metric)).fit(points)
+                                p=float(metric)).fit(points)
     distances, indices = nbrs.kneighbors(points)
     edge_list = []
 
@@ -290,7 +290,7 @@ def generate_distance_matrix(pts, metric, mode):
         D   = np.zeros((N+t,N+t))
         for i in range(N):
             for j in range(N):
-                D[i,j] = np.linalg.norm(pts[i]-pts[j], ord=int(metric))
+                D[i,j] = np.linalg.norm(pts[i]-pts[j], ord=float(metric))
     return D
 
 #### Write distance matrix to file ####
@@ -328,6 +328,18 @@ def get_tsp_graph(points, mode, metric='2', typ=None):
     n = len(points)
     coords = [{"pos":pt} for pt in points]
     tsp_graph = nx.Graph()
+    tsp_graph.add_nodes_from(zip(range(len(points)), coords))
+    if n == 3:
+        tsp_graph.add_edges_from([[0,1],[1,2],[2,0]])
+        tsp_graph.graph['type'] = typ
+        tsp_graph.graph['weight'] = 0.0
+        for n1, n2 in tsp_graph.edges:
+            pt1 = tsp_graph.nodes[n1]['pos'] 
+            pt2 = tsp_graph.nodes[n2]['pos']
+            edge_wt = np.linalg.norm(pt1-pt2)
+            tsp_graph.edges[n1,n2]['weight'] = edge_wt
+            tsp_graph.graph['weight'] += edge_wt 
+        return tsp_graph
 
     cwd = os.getcwd()
     new_wd = os.path.join(cwd, 'plot/tsp-wd/')
@@ -349,7 +361,6 @@ def get_tsp_graph(points, mode, metric='2', typ=None):
 
     # get solution inds and add nodes
     idxs_along_tsp = list(solution.tour)
-    tsp_graph.add_nodes_from(zip(range(len(points)), coords))
 
     # add correct edges to graph
     if mode=='tour':

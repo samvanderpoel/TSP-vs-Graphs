@@ -11,6 +11,9 @@ from cloud_funcs import *
 from graph_funcs import *
 
 xlim, ylim = [0,1], [0,1]
+compare_graphs = False
+patchSize  = (xlim[1]-xlim[0])/250
+edgewwidth = 1.0
 
 class TSPNNGInput:
     def __init__(self, points=[]):
@@ -87,12 +90,10 @@ def run_handler(points=[]):
     ax.set_aspect(1.0)
     ax.set_xticks([])
     ax.set_yticks([])
- 
-    patchSize  = (xlim[1]-xlim[0])/180.0
 
     for pt in run.points:
         ax.add_patch(mpl.patches.Circle(pt, radius = patchSize,
-                     facecolor='blue', edgecolor='black'))
+                     facecolor='black', edgecolor='black', zorder=2.5))
 
     ax.set_title('Points Inserted: ' + str(len(run.points)), \
                    fontdict={'fontsize':12})
@@ -117,14 +118,12 @@ def wrapperEnterRunPointsHandler(fig, ax, run):
             newPoint = np.asarray([event.xdata, event.ydata])
             run.points.append( newPoint  )
             print("You inserted ", newPoint)
-
-            patchSize = (xlim[1]-xlim[0])/180.0
                    
             ax.clear()
 
             for pt in run.points:
                 ax.add_patch(mpl.patches.Circle(pt, radius = patchSize,
-                             facecolor='blue', edgecolor='black'))
+                             facecolor='black', edgecolor='black', zorder=2.5))
 
             ax.set_title('Points Inserted: ' + str(len(run.points)), \
                           fontdict={'fontsize':12})
@@ -136,7 +135,11 @@ def wrapperEnterRunPointsHandler(fig, ax, run):
 def wrapperkeyPressHandler(fig,ax, run):
 
     def _keyPressHandler(event):
-        if event.key in ['n', 'N']:
+        if event.key in ['o', 'O']:
+            global compare_graphs
+            compare_graphs = True
+            print('Comparison of graphs with Euclidean TSP activated.')
+        elif event.key in ['n', 'N']:
 
             run.clearAllStates()
             ax.cla()
@@ -189,10 +192,9 @@ def wrapperkeyPressHandler(fig,ax, run):
                                     key=lambda k: [k[0], k[1]])
 
             run.points = shift_and_scale_to_unit_square(run.points)
-            patchSize  = (xlim[1]-xlim[0])/180
             for point in run.points:     
                 ax.add_patch(mpl.patches.Circle(point, radius = patchSize, \
-                             facecolor='blue',edgecolor='black' ))
+                             facecolor='black',edgecolor='black', zorder=2.5))
             ax.set_title('Points generated: ' + str(len(run.points)), fontdict={'fontsize':12})
             applyAxCorrection(ax)
             fig.canvas.draw()
@@ -263,8 +265,7 @@ def wrapperkeyPressHandler(fig,ax, run):
             render_graph(geometric_graph, fig, ax)
             fig.canvas.draw()
 
-            comp = input("\nCompare edges with those of the Euclidean TSP? ")
-            if 'y' in comp.lower():
+            if compare_graphs:
                 tsp_tour = get_tsp_graph(run.points, mode='tour')
                 tsp_path = get_tsp_graph(run.points, mode='path')
                 n_common_edges_tour = num_common_edges(tsp_tour, geometric_graph)
@@ -279,7 +280,6 @@ def wrapperkeyPressHandler(fig,ax, run):
                       " and Concorde (Euclidean) TSP path:", n_common_edges_path)
                 print(87*"-")   
         elif event.key in ['x', 'X']:
-            patchSize  = (xlim[1]-xlim[0])/180.0
             print('Removing network edges from canvas')
             ax.cla()                          
             applyAxCorrection(ax)
@@ -288,7 +288,7 @@ def wrapperkeyPressHandler(fig,ax, run):
             fig.texts = []
             for pt in run.points:
                 ax.add_patch(mpl.patches.Circle(pt, radius = patchSize,
-                             facecolor='blue', edgecolor='black'))
+                             facecolor='black', edgecolor='black', zorder=2.5))
             fig.canvas.draw()
         elif event.key in ['c', 'C']: 
             run.clearAllStates()
@@ -300,6 +300,9 @@ def wrapperkeyPressHandler(fig,ax, run):
                                                      
             fig.texts = []
             fig.canvas.draw()
+        elif event.key in ['e','E']:
+            print('Exporting figure to jpg.')
+            fig.savefig('plot/mpl-savefig.jpg', dpi=500)
     return _keyPressHandler
 
 def num_common_edges(g1, g2):
@@ -311,19 +314,25 @@ def num_common_edges(g1, g2):
 
 def shift_and_scale_to_unit_square(points):
     """
-    Shifts and scales points so that center of mass is at (0.5, 0.5)
-    and all points lie in the unit square
+    Shifts and scales points to the unit square
     """
     points = [np.asarray(pt) for pt in points]
-    avg_x = np.mean([x for (x,_) in points])
-    avg_y = np.mean([y for (_,y) in points])
-    trans_vec = np.asarray([0.5-avg_x, 0.5-avg_y])
-    trans_pts = [pt + trans_vec for pt in points]
-    x_range = max([x-0.5 for (x,_) in points]) - min([x-0.5 for (x,_) in points])
-    y_range = max([y-0.5 for (_,y) in points]) - min([y-0.5 for (_,y) in points])
-    scale_fac = max(x_range, y_range)
-    new_pts = [np.asarray([0.5 + (x-0.5)/scale_fac, 0.5 + (y-0.5)/scale_fac])
-               for (x,y) in trans_pts]
+    min_x, max_x = min([x for (x,_) in points]), max([x for (x,_) in points])
+    min_y, max_y = min([y for (_,y) in points]), max([y for (_,y) in points])
+    x_range = max_x - min_x
+    y_range = max_y - min_y
+    if x_range > y_range:
+        xtrans = -min_x
+        ymid = min_y + y_range/2
+        ytrans = x_range/2 - ymid
+        scale_fac = x_range
+    else:
+        ytrans = -min_y
+        xmid = min_x + x_range/2
+        xtrans = y_range/2 - xmid
+        scale_fac = y_range
+    trans_pts = [pt + np.asarray([xtrans, ytrans]) for pt in points]
+    new_pts = [pt/scale_fac for pt in trans_pts]
     return new_pts
 
 def applyAxCorrection(ax):
@@ -356,7 +365,7 @@ def render_graph(G,fig,ax):
     edgecol = None
     edgecols = {'mst':'g',
                 'onion':'gray',
-                'gabriel':(153/255, 102/255, 255/255),
+                'gabriel':(255/255,0/255,0/255),
                 'urq':(0,0,0),
                 'conc':'r',
                 'pytsp':'r',
@@ -364,7 +373,7 @@ def render_graph(G,fig,ax):
                 'nng':'m',
                 'bitonic':(153/255, 0/255, 0/255),
                 'pypath':(255/255, 0/255, 0/255),
-                'concorde':(153/255,50/255,204/255),
+                'concorde':(0,255/255,255/255),
                 'kdel':(255/255,0/255,255/255)}
     if G.graph['type'] in edgecols:
         edgecol = edgecols[G.graph['type']]
@@ -374,7 +383,8 @@ def render_graph(G,fig,ax):
         for  (nidx1, nidx2) in G.edges:
             x1, y1 = G.nodes[nidx1]['pos']
             x2, y2 = G.nodes[nidx2]['pos']
-            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=1.0)
+            ax.plot([x1,x2],[y1,y2],'-', color=edgecol, linewidth=edgewwidth,
+                    zorder = 2)
     else:
         from networkx.algorithms.traversal.depth_first_search import dfs_edges
         node_coods = []
@@ -384,14 +394,13 @@ def render_graph(G,fig,ax):
         node_coods = np.asarray(node_coods)
 
         # mark the nodes
-        patchSize = (xlim[1]-xlim[0])/180.0
-        xs = [pt[0] for pt in node_coods]
-        ys = [pt[1] for pt in node_coods]
-        ax.scatter(xs, ys, s = 0.5)
+        # xs = [pt[0] for pt in node_coods]
+        # ys = [pt[1] for pt in node_coods]
+        # ax.scatter(xs, ys, s = 0.5, zorder=2.5)
 
         polygon = Polygon(node_coods, closed=True, alpha=0.40, \
                           facecolor=(72/255,209/255,204/255, 0.4), \
-                          edgecolor='k', linewidth=1.0)
+                          edgecolor='k', linewidth=0, zorder=1)
         ax.add_patch(polygon)
 
     applyAxCorrection(ax)
