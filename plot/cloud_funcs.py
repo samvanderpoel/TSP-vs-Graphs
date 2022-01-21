@@ -6,10 +6,7 @@
 #
 # The methods coming from Bentley's article are labaled as such.
 
-import matplotlib.pyplot as plt
-import scipy as sp
 import numpy as np
-import sys, os, time, random
 
 def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
     """
@@ -21,46 +18,43 @@ def pts_uni(numpts, xlim=[0,1], ylim=[0,1]):
     return np.asarray(list(zip(xs,ys)))
 
 def pts_annulus(numpts, r_inner=1.0, r_outer=2.0, numrings=10, theta=np.pi/6):
-    """ Place points on consecutive nested concentric circles, with points 
-    on each circle differing from previous circle by a scaling and rotation. 
-    All circles have the same number of points on them
     """
-    numptsperring = numpts//numrings
-    numptsrem     = numpts%numrings
+    Place points on consecutive nested concentric circles, with points 
+    on each circle differing from previous circle by a scaling and rotation. 
+    If numrings is not a divisor of numpts, then not all circles will
+    have the same number of points.
+    """
+    div, rem = divmod(numpts, numrings)
+    nums = numrings*[div]
+    for i in range(rem):
+        nums[i] += 1
     
-    xunit = np.cos( [k * 2.0*np.pi/numptsperring  for k in range(numptsperring)] )
-    yunit = np.sin( [k * 2.0*np.pi/numptsperring  for k in range(numptsperring)] )
     pts   = []
-    
-    radii  = np.linspace(r_inner,r_outer,numrings)
-    
-    for r,k in zip(radii, range(len(radii))) :
-        print(r,k)
-        xs = r*xunit
-        ys = r*yunit
-        
-        for x,y in zip(xs,ys):
-             rotmat =  np.asarray([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-             xt,yt  =  np.linalg.matrix_power(rotmat,k).dot(np.asarray([x,y]))
-             pts.append(r*np.asarray([xt,yt]))
+    radii = np.linspace(r_inner, r_outer, numrings)
+    for r, k, num_in_ring in zip(radii, range(len(radii)), nums):
+        xs = r * np.cos([k * 2.0*np.pi/num_in_ring
+                         for k in range(num_in_ring)])
+        ys = r * np.sin([k * 2.0*np.pi/num_in_ring
+                         for k in range(num_in_ring)])
+        for x, y in zip(xs, ys):
+            rotmat = np.asarray([[np.cos(k*theta), -np.sin(k*theta)],
+                                 [np.sin(k*theta),  np.cos(k*theta)]])
+            xt, yt = rotmat.dot(np.asarray([x, y]))
+            pts.append(np.asarray([xt, yt]))
 
-    # place them uniformly on a disk with radius somewhere between the inner and outer radius
-    if numptsrem:
-        xrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * np.cos( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
-        yrem = (1.0 + r_outer/r_inner)/2.0  * r_inner * np.sin( [k*2*np.pi/numptsrem  for k in range(numptsrem)] )
-        pts.extend(list(zip(xrem,yrem)))
     return np.asarray(pts)
 
-def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0):
-
+def pts_annulus_random(numpts, r_inner=1.0, r_outer=2.0, dim=2):
+    """
+    Sample numpts points uniformly from a d-dimensional
+    spherical shell of inner and outer radii r_inner and
+    r_outer, respectively. For dim=2 this is an annulus.
+    """
     pts = []
-    while(len(pts)<numpts):
-      x,y = - r_outer  + 2*r_outer * np.random.random(2)
-      normpt = np.linalg.norm(np.asarray([x,y]))
-      if normpt < r_outer and normpt > r_inner:
-            pts.append(np.asarray([x,y]))
-      else:
-            continue
+    while len(pts) < numpts:
+        pt = - r_outer  + 2*r_outer * np.random.random(dim)
+        if r_inner < np.linalg.norm(pt) < r_outer:
+            pts.append(np.asarray(pt))
     return np.asarray(pts)
 
 def pts_ball(numpts, r=1):
@@ -78,26 +72,24 @@ def pts_ball(numpts, r=1):
             continue
     return np.asarray(pts)
 
-def pts_clusnorm(numpts, numclus=10 , mu=0,sigma=0.05):
+def pts_clusnorm(numpts, numclus=10 , mu=0, sigma=0.05):
     """
     Bentley #4. Choose numclus points from U[0,1]^2 then put 
     Normal(mu,sigma) at each
     """
+    div, rem = divmod(numpts, numclus)
+    nums = numclus*[div]
+    for i in range(rem):
+        nums[i] += 1
+
     cluspts = pts_uni(numclus, xlim=[0,1], ylim=[0,1])
-    pts     = []
-    numptsrem = numpts%numclus
-   
-    for pt in cluspts:
-        normal_pts_x = np.random.normal(loc=mu,scale=sigma,size=numpts//numclus)
-        normal_pts_y = np.random.normal(loc=mu,scale=sigma,size=numpts//numclus)
+    pts = []
+    for idx, pt in enumerate(cluspts):
+        normal_pts_x = np.random.normal(loc=mu, scale=sigma, size=nums[idx])
+        normal_pts_y = np.random.normal(loc=mu, scale=sigma, size=nums[idx])
         normal_pts   = np.asarray(list(zip(normal_pts_x, normal_pts_y)))
         for n in normal_pts:
             pts.append(n+pt)
-    
-    if numptsrem:
-        tmp = pts_uni(numptsrem,xlim=[0,1],ylim=[0,1])
-        for pt in tmp:
-            pts.append(pt)
 
     return np.asarray(pts)
 
@@ -110,44 +102,39 @@ def pts_cubediam(numpts):
     ys = xs
     return np.asarray(list(zip(xs,ys)))
 
-def pts_corners(numpts,numpolyverts=4,s=0.7):
+def pts_corners(numpts, numpolyverts=4, s=0.7):
     """
     Bentley #7. Uniform distribution at the vertices of a regular polygon 
     with `numpolyverts` vertices
     """
+    div, rem = divmod(numpts, numpolyverts)
+    nums = numpolyverts*[div]
+    for i in range(rem):
+        nums[i] += 1
+
     vx = [2.0 * np.cos(k*2.0*np.pi/numpolyverts) for k in range(numpolyverts)]
     vy = [2.0 * np.sin(k*2.0*np.pi/numpolyverts) for k in range(numpolyverts)]
-
-    numptsrem  = numpts%numpolyverts
     pts = []
+    for x, y, num in zip(vx, vy, nums):
+        basept = np.asarray([x, y])
+        rx = -s + 2*s * np.random.uniform(size=num)
+        ry = -s + 2*s * np.random.uniform(size=num)
+        new_pts = [basept + pt for pt in np.asarray(list(zip(rx,ry)))]
+        pts.extend(new_pts)
 
-    for x,y in zip(vx,vy):
-        basept = np.asarray([x,y])
-        rx = -s + 2*s * np.random.uniform(size=numpts//numpolyverts)
-        ry = -s + 2*s * np.random.uniform(size=numpts//numpolyverts)
-        tmp = [basept + pt for pt in np.asarray(list(zip(rx,ry)))]
-        for t in tmp:
-            pts.append(t)
-
-    if numptsrem:
-        tmp = pts_uni(numptsrem,xlim=[0,1],ylim=[0,1])
-        for pt in tmp:
-            pts.append(pt)
-
-    assert len(pts) == numpts, "length of pts array should be the same as numpts returned"
     return np.asarray(pts)
 
 def pts_grid(numpts):
     """
     Bentley #8. Choose numpts from a square grid that contains about 1.3*numpts points
     """
-    g = int(np.ceil(np.sqrt(1.3*numpts))) # grid size is `g x g (approx equal to) 1.3*N `
+    g = int(np.ceil(np.sqrt(1.3*numpts))) # grid size is g x g (approx equal to) 1.3*N
     pts = []
     for x in range(g):
         for y in range(g):
             pts.append(np.asarray([x,y]))
-    ridxs = np.random.choice(list(range(numpts)), numpts)
-    pts   = [pts[r] for r in ridxs]
+    ridxs = np.random.choice(g**2, numpts)
+    pts = [pts[r] for r in ridxs]
     return np.asarray(perturb_pts(pts))
 
 def pts_normal(numpts, mu=0.5, sigma=1):
@@ -173,23 +160,26 @@ def pts_spokes(numpts):
     return np.asarray(pts)
 
 def pts_concentric_circular_points(numpts, numrings):
-    numpts_per_ring = int(numpts/numrings)
+    """
+    Places points on numrings concentric circles. If numrings
+    is not a divisor of numpts, then not all concentric circles
+    will have the same number of points.
+    """
+    div, rem = divmod(numpts, numrings)
+    nums = numrings*[div]
+    for i in range(rem):
+        nums[i] += 1
+
     points = []
     center = np.asarray([0.5,0.5])
     for ring in range(numrings):
         radius = (ring+1)*0.5/(numrings+1)
-        print("Radius computed is ", radius)
-        angles = [idx * 2*np.pi/numpts_per_ring for idx in range(numpts_per_ring)]
-        xs = [center[0] + radius * np.cos(theta) for theta in angles ]
-        ys = [center[1] + radius * np.sin(theta) for theta in angles ]
-        points.extend([np.asarray(pt) for pt in zip(xs,ys)])
+        angles = [idx * 2*np.pi/nums[ring] for idx in range(nums[ring])]
+        xs = [center[0] + radius * np.cos(theta) for theta in angles]
+        ys = [center[1] + radius * np.sin(theta) for theta in angles]
+        points.extend([np.asarray(pt) for pt in zip(xs, ys)])
 
-    num_points_rem = numpts%numrings
-    if num_points_rem != 0:
-        xrs = np.random.rand(num_points_rem)
-        yrs = np.random.rand(num_points_rem)
-        points.extend([np.asarray(pt) for pt in zip(xrs,yrs)])
-    return points
+    return np.asarray(points)
 
 def perturb_pts(points, xptb=0.001, yptb=0.001):
     """ For randomly perturbing (uniformly) the x coordinate and ycoordinate of points
