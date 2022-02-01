@@ -3,11 +3,14 @@ import networkx as nx
 import os
 import datetime
 
-def ccw(A,B,C):
-    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
 
-def intersect(A,B,C,D):
-    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+def ccw(A, B, C):
+    return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+
+
+def intersect(A, B, C, D):
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
 
 def num_common_edges(g1, g2):
     num_common = 0
@@ -16,6 +19,7 @@ def num_common_edges(g1, g2):
             num_common += 1
     return num_common
 
+
 def minus(g1, g2):
     # returns the nx graph g1-g2
     g = nx.Graph()
@@ -23,6 +27,7 @@ def minus(g1, g2):
         if not g2.has_edge(*e):
             g.add_edge(*e)
     return g
+
 
 def graph_to_yaml(graph, dirname):
     """
@@ -37,12 +42,13 @@ def graph_to_yaml(graph, dirname):
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
     now = str(datetime.datetime.now())
-    strnow = now.replace('-','').replace(' ','').replace(':','').replace('.','')
-    filepath = os.path.join(dirname, str(n) + '_' + strnow + '.yaml')
-    with open(filepath, 'w+') as file:
-        file.write('points:\n')
+    strnow = now.replace("-", "").replace(" ", "").replace(":", "").replace(".", "")
+    filepath = os.path.join(dirname, str(n) + "_" + strnow + ".yaml")
+    with open(filepath, "w+") as file:
+        file.write("points:\n")
         for point in points:
-            file.write('  - [{a},{b}]\n'.format(a=point[0], b=point[1]))
+            file.write("  - [{a},{b}]\n".format(a=point[0], b=point[1]))
+
 
 def compare(d, comp, g1, g2, anomalies, dirname):
     """
@@ -54,7 +60,7 @@ def compare(d, comp, g1, g2, anomalies, dirname):
         g1, g2:
             dictionaries of graphs indexed by iteration
     """
-    #print('Working on comparison: ' + comp)
+    # print('Working on comparison: ' + comp)
     n = len(g1)
     new_data = []
     for i in range(n):
@@ -63,6 +69,6 @@ def compare(d, comp, g1, g2, anomalies, dirname):
         if comp in anomalies:
             criterion = eval("common" + anomalies[comp])
             if criterion:
-                graph_to_yaml(g1[i], os.path.join(dirname, 'anomalies/' + comp))
+                graph_to_yaml(g1[i], os.path.join(dirname, "anomalies/" + comp))
     d[comp] = new_data
-    #print('Finished comparison: ' + comp)
+    # print('Finished comparison: ' + comp)

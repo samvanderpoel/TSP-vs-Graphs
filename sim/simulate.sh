@@ -51,7 +51,9 @@ if [ $par = true ] ; then
     parallel -j $concurrently < sim/args.txt &>/dev/null
     rm sim/args.txt
     for type in ${cloudtypes[@]}; do
-        echo "python sim/plot_simul_data.py --jobname=\"$jobname\" --cloudtype=${type} --comps=${comps} --subdir=\"\"" >> sim/args.txt
+        d="python sim/plot_simul_data.py --jobname=\"$jobname\" "
+        e="--cloudtype=${type} --comps=${comps} --subdir=\"\""
+        echo $d$e >> sim/args.txt
     done
     parallel -j ${#cloudtypes[@]} < sim/args.txt
     rm sim/args.txt
