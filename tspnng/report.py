@@ -1,6 +1,7 @@
 import argparse
 import os
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--n", type=int, required=True)
 parser.add_argument("--p", type=int, required=True)

@@ -4,8 +4,20 @@ import sys, os
 import networkx as nx
 import itertools
 from multiprocessing import Pool
-import graph_tool.all as gt
-import graph_tool.topology as tg
+
+import rust
+
+# graph_tool can't be installed via pip, which is frustrating. If you're using
+# pip as your package manager, then we don't use graph_tool. Note that this is
+# somewhat irrelevant, as the high performance version of this code uses a Rust
+# implementation of the find_edge_swap method, circumventing any use of
+# graph_tool.
+try:
+    import graph_tool.all as gt
+    import graph_tool.topology as tg
+except:
+    pass
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mid", type=str, required=True)
@@ -58,7 +70,10 @@ def snng_parallel(n, k):
     """
     Generate Snng(n) up to index k
     """
-    Ls = [list(set(range(n)) - set([(i - 1) % n, i, (i + 1) % n])) for i in range(k)]
+    Ls = [
+        list(set(range(n)) - set([(i - 1) % n, i, (i + 1) % n]))
+        for i in range(k)
+    ]
     for mapval in itertools.product(*Ls):
         yield list(mapval)
 
@@ -97,6 +112,21 @@ def find_edge_swap_nx(n, k, suffix, proc):
                 break
         if not foundswap:
             return [sig, t]
+    with open(gnuprocdir + "/out" + str(proc) + ".txt", "a") as f:
+        f.write("finished\n")
+
+
+def find_edge_swap_rust(n, k, suffix, proc):
+    with open(gnuprocdir + "/out" + str(proc) + ".txt", "w") as f:
+        f.write("started\n")
+
+    # call rust-implemented binary for warp-speed implementation
+    result = rust.find_edge_swap(n, k, suffix)
+
+    # type(result) = Optional[(list, list)]
+    if not isinstance(result, None):
+        return list(result)
+
     with open(gnuprocdir + "/out" + str(proc) + ".txt", "a") as f:
         f.write("finished\n")
 
@@ -147,7 +177,12 @@ if __name__ == "__main__":
     pool = Pool()
     for i, suffix in enumerate(itertools.product(*suffixes)):
         func = functools.partial(
-            find_edge_swap_nx, n=n, k=n - (p + q), suffix=mid + list(suffix), proc=i
+            # find_edge_swap_nx,
+            find_edge_swap_rust,
+            n=n,
+            k=n - (p + q),
+            suffix=mid + list(suffix),
+            proc=i,
         )
         pool.apply_async(func, callback=quit)
     pool.close()

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-n=7
+n=13
 p=2 # gnu-parallel will spawn (n-3)^p tasks
 q=2 # each task spawned by gnu-parallel will spawn (n-3)^q subprocesses
 

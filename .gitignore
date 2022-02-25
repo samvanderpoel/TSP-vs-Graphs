@@ -1,0 +1,6 @@
+pyconcorde/
+env/
+*/tour-reports*
+*result*.txt
+*target*
+*debug*
