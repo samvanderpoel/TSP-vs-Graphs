@@ -1,0 +1,55 @@
+# jobname:        a unique name identifying the current job
+# minpts:         smallest point cloud size
+# maxpts:         largest point cloud size
+# interval:       spacing between point cloud sizes
+# batch:          number of point clouds to simulate concurrently
+# numrunsper:     number of point clouds per point cloud size
+# comps:          which comparisons to make between graphs
+# anoms:          anomalies to check for and record
+
+jobname: test
+minpts: 10
+maxpts: 80
+interval: 10
+batch: 20
+numrunsper: 20
+comps: 
+  tour:
+    - 1nng
+    - 2nng
+    - 20pt
+    - mst
+    - gab
+    - urq
+    - del
+    - 1del
+    - 2del
+    - bito
+    - path
+  path:
+    - 1nng
+    - 2nng
+    - 20pt
+    - mst
+    - gab
+    - urq
+    - del
+    - 1del
+    - 2del
+  bito:
+    - 1nng
+    - 2nng
+    - 20pt
+    - mst
+    - gab
+    - urq
+    - del
+    - 1del
+    - 2del
+  1nng:
+    - tour
+    - path
+    - bito
+anoms:
+  tour_del: '<1'
+  path_mst: '==1'

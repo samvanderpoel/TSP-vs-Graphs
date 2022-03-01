@@ -1,0 +1,39 @@
+# jobname:        a unique name identifying the current job
+# comps:          which graph comparisons to plot
+# subdir:         subdirectory of plots directory to place
+#                 plots in. may be left empty
+# min_pts:        min point set size to plot. note the code
+#                 takes min_pts=max(min_pts, min(all_numpts))
+# max_pts:        max point set size to plot. note the code
+#                 takes min_pts=max(min_pts, min(all_numpts))
+# bands:          bool, whether +- 1 stdev bands should be
+#                 plotted
+
+jobname: test
+comps: 
+  tour:
+    - 1nng
+    - 2nng
+    - mst
+    - gab
+    - urq
+    - del
+    - path
+  path:
+    - 1nng
+    - 2nng
+    - mst
+    - gab
+    - urq
+    - del
+  bito:
+    - 1nng
+    - 2nng
+    - mst
+    - gab
+    - urq
+    - del
+subdir: ""
+min_pts: 0
+max_pts: 2000
+bands: True
