@@ -3,7 +3,7 @@ use petgraph::algo;
 use petgraph::prelude::*;
 use petgraph::{Graph, Undirected};
 use pyo3::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{hash_map, HashMap, HashSet};
 
 #[pymodule]
 fn rust(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -13,10 +13,11 @@ fn rust(_py: Python, m: &PyModule) -> PyResult<()> {
 
 /// Looks for a profitable edge swap.
 ///
-/// Returns a profitable edge swap if one exists. Otherwise, returns `None`. The present function is
-/// a thin, public wrapper for `edge_swap_search`, which is intended to be private.
+/// Returns `None` if a profitable edge swap exists. Otherwise, returns a witness `\sigma`. The
+/// present function is a thin, public wrapper for `edge_swap_search`, which is intended to be
+/// private.
 #[pyfunction]
-fn find_edge_swap(n: usize, k: usize, suffix: Vec<usize>) -> Option<(Vec<usize>, Vec<usize>)> {
+fn find_edge_swap(n: usize, k: usize, suffix: Vec<usize>) -> Option<Vec<usize>> {
     // edge_list for graphs to be created
     let edge_list = (0..n)
         .map(|x| (x, (x + 1) % n))
@@ -28,14 +29,14 @@ fn find_edge_swap(n: usize, k: usize, suffix: Vec<usize>) -> Option<(Vec<usize>,
 
 /// Looks for a profitable edge swap.
 ///
-/// Returns a profitable edge swap if one exists. Otherwise, returns `None`. The present function is
-/// intended to be private. Used as a helper function in `find_edge_swap`.
+/// Returns `None` if a profitable edge swap exists; otherwise, returns a witness `\sigma`. The
+/// present function is intended to be private. Used as a helper function in `find_edge_swap`.
 fn edge_swap_search(
     n: usize,
     k: usize,
     suffix: &[usize],
     edge_list: &[(usize, usize)],
-) -> Option<(Vec<usize>, Vec<usize>)> {
+) -> Option<Vec<usize>> {
     // iterate over all Snng prefixes (for parallelism via gnu parallel)
     for prefix in snng_parallel(n, k).into_iter().multi_cartesian_product() {
         // instantiate a graph along with hashmaps to keep track of indices
@@ -46,7 +47,7 @@ fn edge_swap_search(
         if found_edge_swap_sigma(&sigma, n, &mut g, &node_indices, &edge_indices) {
             continue;
         } else {
-            return Some((sigma, vec![1; n]));
+            return Some(sigma);
         }
     }
     None
@@ -67,51 +68,54 @@ fn found_edge_swap_sigma(
             continue;
         } else {
             for i in 0..n {
-                if e[i] == -1 || e[i] == 1 {
-                    if e[i] == -1 {
-                        // remove edge (i, (i - 1) % n)
-                        if let Some(x) = edge_indices.get(&(i, (i - 1) % n)) {
-                            g.remove_edge(*x);
-                        }
-                        //g.remove_edge(*edge_indices.get(&(i, (i - 1) % n)).unwrap());
-                    } else if e[i] == 1 {
-                        // remove edge (i, (i + 1) % n)
-                        if let Some(x) = edge_indices.get(&(i, (i + 1) % n)) {
-                            g.remove_edge(*x);
-                        }
-                        //g.remove_edge(*edge_indices.get(&(i, (i + 1) % n)).unwrap());
+                // if i == 0, then the subtraction i-1 won't work (usize underflow)
+                if e[i] == -1 && i >= 1 {
+                    // remove edge (i, (i - 1) % n)
+                    if let Some(x) = edge_indices.get(&(i, (i - 1) % n)) {
+                        g.remove_edge(*x);
+                        // add edge (i, sigma[i])
+                        g.add_edge(
+                            *node_indices.get(&i).unwrap(),
+                            *node_indices.get(&sigma[i]).unwrap(),
+                            1,
+                        );
+                    }
+                } else if e[i] == 1 {
+                    // remove edge (i, (i + 1) % n)
+                    if let Some(x) = edge_indices.get(&(i, (i + 1) % n)) {
+                        g.remove_edge(*x);
+                        // add edge (i, sigma[i])
+                        g.add_edge(
+                            *node_indices.get(&i).unwrap(),
+                            *node_indices.get(&sigma[i]).unwrap(),
+                            1,
+                        );
                     }
                 }
-
-                // add edge (i, sigma[i])
-                g.add_edge(
-                    *node_indices.get(&i).unwrap(),
-                    *node_indices.get(&sigma[i]).unwrap(),
-                    1,
-                );
             }
-        }
-        //println!("{:?}", g);
-        //println!("size: {}", g.edge_count());
-        // if is_cycle
-        if is_cycle(g) {
-            return true;
+            // if g is a cycle
+            if is_cycle(g) {
+                return true;
+            }
         }
     }
     false
 }
 
-/// Instantiates a `petgraph::Graph` from a slice of two-tuples denoting edges.
+/// A `petgraph::Graph` along with `HashMap`s for indexing into nodes and edges with `usize`s.
 ///
-/// Returns the newly instantiated `Graph`, along with `HashMap`s for keeping track of indices.
-fn graph_from_edges(
-    edge_list: &[(usize, usize)],
-) -> (
+/// The `HashMap`s keep track of the `NodeIndex` and `EdgeIndex` values.
+type IndexableGraph = (
     Graph<usize, usize, Undirected>,
     HashMap<usize, NodeIndex>,
     HashMap<(usize, usize), EdgeIndex>,
-) {
-    let mut g = Graph::<usize, usize, Undirected>::new_undirected();
+);
+
+/// Instantiates a `petgraph::Graph` from a slice of two-tuples denoting edges.
+///
+/// Returns the newly instantiated `Graph`, along with `HashMap`s for keeping track of indices.
+fn _graph_from_edges(edge_list: &[(usize, usize)]) -> IndexableGraph {
+    let mut g = Graph::<usize, usize, Undirected>::default();
     let mut node_indices = HashMap::<usize, NodeIndex>::new();
     let mut edge_indices = HashMap::<(usize, usize), EdgeIndex>::new();
     for (i, j) in edge_list.iter() {
@@ -132,6 +136,64 @@ fn graph_from_edges(
     (g, node_indices, edge_indices)
 }
 
+fn graph_from_edges(edge_list: &[(usize, usize)]) -> IndexableGraph {
+    let mut g = Graph::<usize, usize, Undirected>::default();
+    let mut node_indices = HashMap::<usize, NodeIndex>::new();
+    let mut edge_indices = HashMap::<(usize, usize), EdgeIndex>::new();
+    for (i, j) in edge_list.iter() {
+        // add nodes
+        // ix is node i's index
+        let ix = safe_add_node(*i, &mut g, &mut node_indices);
+        // jx is node j's index
+        let jx = safe_add_node(*j, &mut g, &mut node_indices);
+
+        // add edge
+        // ex is edge (ix, jx)'s index
+        safe_add_edge(*i, *j, ix, jx, &mut g, &mut edge_indices);
+    }
+
+    (g, node_indices, edge_indices)
+}
+
+/// Adds a node to graph `g` if it is not currently present in `g`.
+///
+/// Returns the node's `NodeIndex`. If the node was already present in `g`, then this is the current
+/// `NodeIndex`, and no node is added to `g`. This behavior is what we mean by "safe."
+fn safe_add_node(
+    weight: usize,
+    g: &mut Graph<usize, usize, Undirected>,
+    node_indices: &mut HashMap<usize, NodeIndex>,
+) -> NodeIndex {
+    if let hash_map::Entry::Vacant(e) = node_indices.entry(weight) {
+        let ix = g.add_node(weight);
+        e.insert(ix);
+        ix
+    } else {
+        *node_indices.get(&weight).unwrap()
+    }
+}
+
+/// Adds an edge between two nodes `i`, `j` in `g` if it is not currently present in `g`.
+///
+/// If there is already an edge between nodes `i` and `j` in `g`, then no edge is added. This
+/// behavior is what we mean by "safe."
+fn safe_add_edge(
+    i_weight: usize,
+    j_weight: usize,
+    ix: NodeIndex,
+    jx: NodeIndex,
+    g: &mut Graph<usize, usize, Undirected>,
+    edge_indices: &mut HashMap<(usize, usize), EdgeIndex>,
+) {
+    if let hash_map::Entry::Vacant(e) = edge_indices.entry((i_weight, j_weight)) {
+        let ex = g.add_edge(ix, jx, 1);
+        e.insert(ex);
+    } else if let hash_map::Entry::Vacant(e) = edge_indices.entry((j_weight, i_weight)) {
+        let ex = g.add_edge(jx, ix, 1);
+        e.insert(ex);
+    }
+}
+
 /// Returns a vector of `\sigma` prefixes.
 ///
 /// `found_edge_swap_sigma` uses the elements of the present function's returned vector as
@@ -147,15 +209,20 @@ fn snng_parallel(n: usize, k: usize) -> Vec<Vec<usize>> {
 /// Used as a helper function in `snng_parallel`.
 fn snng_set_diff(i: usize, n: usize) -> Vec<usize> {
     let a = (0..n).collect::<HashSet<usize>>();
-    let b = vec![(i - 1) % n, i, (i + 1) % n]
-        .into_iter()
-        .collect::<HashSet<usize>>();
-    a.difference(&b).copied().collect::<Vec<usize>>()
+    if i == 0 {
+        let b = vec![i, (i + 1) % n].into_iter().collect::<HashSet<usize>>();
+        a.difference(&b).copied().collect::<Vec<usize>>()
+    } else {
+        let b = vec![(i - 1) % n, i, (i + 1) % n]
+            .into_iter()
+            .collect::<HashSet<usize>>();
+        a.difference(&b).copied().collect::<Vec<usize>>()
+    }
 }
 
 /// Tests whether or not a graph is isomorphic to a cycle on at least three vertices.
 fn is_cycle(g: &Graph<usize, usize, Undirected>) -> bool {
-    is_two_regular(g) && (algo::connected_components(g) != 1)
+    is_two_regular(g) && (algo::connected_components(g) == 1)
 }
 
 /// Tests whether or not all vertices in a nonempty graph have degree exactly two.

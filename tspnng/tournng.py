@@ -1,4 +1,5 @@
 import argparse
+import enum
 import functools
 import sys, os
 import networkx as nx
@@ -111,6 +112,7 @@ def find_edge_swap_nx(n, k, suffix, proc):
                 foundswap = True
                 break
         if not foundswap:
+            # don't need to return t; sigma suffices
             return [sig, t]
     with open(gnuprocdir + "/out" + str(proc) + ".txt", "a") as f:
         f.write("finished\n")
@@ -123,12 +125,11 @@ def find_edge_swap_rust(n, k, suffix, proc):
     # call rust-implemented binary for warp-speed implementation
     result = rust.find_edge_swap(n, k, suffix)
 
-    # type(result) = Optional[(list, list)]
-    if not isinstance(result, None):
-        return list(result)
-
-    with open(gnuprocdir + "/out" + str(proc) + ".txt", "a") as f:
-        f.write("finished\n")
+    if result is None:
+        with open(gnuprocdir + "/out" + str(proc) + ".txt", "a") as f:
+            f.write("finished\n")
+    else:
+        return result
 
 
 def find_edge_swap_gt(n, k, suffix, proc):
@@ -174,8 +175,14 @@ if __name__ == "__main__":
         for i in range(n - q, n)
     ]
     counterexample = None
-    pool = Pool()
-    for i, suffix in enumerate(itertools.product(*suffixes)):
+
+    debug = False
+    # DEBUG
+    if debug:
+        suffix = [l[0] for l in suffixes]
+
+        i = 0
+        # i, suffix = 0, itertools.product(*suffixes)[0]
         func = functools.partial(
             # find_edge_swap_nx,
             find_edge_swap_rust,
@@ -184,9 +191,21 @@ if __name__ == "__main__":
             suffix=mid + list(suffix),
             proc=i,
         )
-        pool.apply_async(func, callback=quit)
-    pool.close()
-    pool.join()
+        func()
+    else:
+        pool = Pool()
+        for i, suffix in enumerate(itertools.product(*suffixes)):
+            func = functools.partial(
+                # find_edge_swap_nx,
+                find_edge_swap_rust,
+                n=n,
+                k=n - (p + q),
+                suffix=mid + list(suffix),
+                proc=i,
+            )
+            pool.apply_async(func, callback=quit)
+        pool.close()
+        pool.join()
     if counterexample is not None:
         with open(gnuprocdir + "/failed.txt", "w") as f:
             f.write(
