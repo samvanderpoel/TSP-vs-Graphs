@@ -6,35 +6,27 @@ import numpy as np
 import networkx as nx
 import math
 
-from sklearn.neighbors import NearestNeighbors  # for KNNG
-from scipy.spatial import Delaunay  # for Delaunay and Urquhart
-from scipy.spatial import Voronoi  # for Gabriel
-from concorde.tsp import TSPSolver  # for solve_tsp_from_file
+from sklearn.neighbors import NearestNeighbors
+from scipy.spatial import Delaunay
+from scipy.spatial import Voronoi
+from concorde.tsp import TSPSolver
 from networkx.algorithms.tree.mst import minimum_spanning_tree
 from orderk_delaunay import *
 from utils import *
 
-#### NNG ####
+
 def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     n = len(points)
     if pct is not None:
         print(
-            "Working on "
-            + str(100 * pct)
-            + "-percent NNG, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Working on {100*pct}-pct NNG, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
         k = math.ceil(pct * n)
     else:
         print(
-            "Working on "
-            + str(k)
-            + "-NNG, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Working on {k}-NNG, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
     points = np.array(points)
     coords = [{"pos": pt} for pt in points]
@@ -42,7 +34,9 @@ def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
     nng_graph.add_nodes_from(zip(range(len(points)), coords))
     if metric == "inf":
         nbrs = NearestNeighbors(
-            n_neighbors=(k + 1), algorithm="ball_tree", metric="chebyshev"
+            n_neighbors=(k + 1),
+            algorithm="ball_tree",
+            metric="chebyshev"
         ).fit(points)
     else:
         nbrs = NearestNeighbors(
@@ -60,40 +54,27 @@ def get_nng_graph(points, q, iteration, k=None, pct=None, metric=2):
 
     nng_graph.add_edges_from(edge_list)
     if pct is not None:
-        nng_graph.graph["type"] = str(100 * pct) + "-pct-nng"
-        nng_graph.graph["weight"] = None
+        nng_graph.graph["type"] = f"{100*pct}-pct-nng"
         print(
-            "Finished computing "
-            + str(100 * pct)
-            + "-percent NNG, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Finished {100*pct}-pct NNG, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
     else:
-        nng_graph.graph["type"] = str(k) + "nng"
-        nng_graph.graph["weight"] = None
+        nng_graph.graph["type"] = f"{k}nng"
         print(
-            "Finished computing "
-            + str(k)
-            + "-NNG, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Finished {k}-NNG, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
 
     # multiprocessing:
     q.put({iteration: nng_graph})
 
 
-#### Delaunay Triangulation ####
 def get_delaunay_tri_graph(points, q=None, iteration=None):
     if q is not None:
         print(
-            "Working on Delaunay, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Working on Delaunay, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
     points = np.array(points)
     coords = [{"pos": pt} for pt in points]
@@ -117,23 +98,20 @@ def get_delaunay_tri_graph(points, q=None, iteration=None):
         total_weight_of_edges = total_weight_of_edges + edge_wt
     deltri_graph.graph["weight"] = total_weight_of_edges
     deltri_graph.graph["type"] = "dt"
-    if q is not None:
-        print(
-            "Finished computing Delaunay, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
-        )
-        # multiprocessing:
-        q.put({iteration: deltri_graph})
-    else:
-        return deltri_graph
+    
+    print(
+        f"Finished computing Delaunay, numpts={len(points)}, "
+        f"iteration {iteration}"
+    )
+
+    # multiprocessing:
+    q.put({iteration: deltri_graph})
 
 
-#### MST ####
 def get_mst_graph(points, q, iteration):
     print(
-        "Working on MST, numpts=" + str(len(points)) + ", iteration " + str(iteration)
+        f"Working on MST, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
     points = np.array(points)
     coords = [{"pos": pt} for pt in points]
@@ -151,27 +129,25 @@ def get_mst_graph(points, q, iteration):
         edge_wt = np.linalg.norm(pt1 - pt2)
         deltri_graph.edges[n1, n2]["weight"] = edge_wt
 
-    mst_graph = minimum_spanning_tree(deltri_graph, algorithm="kruskal")
+    mst_graph = minimum_spanning_tree(
+        deltri_graph,
+        algorithm="kruskal"
+    )
     mst_graph.graph["type"] = "mst"
     print(
-        "Finished computing MST, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Finished computing MST, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
 
     # multiprocessing:
     q.put({iteration: mst_graph})
 
 
-#### Gabriel ####
 def get_gabriel_graph(points, q=None, iteration=None):
     if q is not None:
         print(
-            "Working on Gabriel, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
+            f"Working on Gabriel, numpts={len(points)}, "
+            f"iteration {iteration}"
         )
     points = np.array(points)
     coords = [{"pos": pt} for pt in points]
@@ -180,12 +156,18 @@ def get_gabriel_graph(points, q=None, iteration=None):
     vor = Voronoi(points)
     center = vor.points.mean(axis=0)
 
-    for (p1, p2), (v1, v2) in zip(vor.ridge_points, vor.ridge_vertices):
+    for (p1, p2), (v1, v2) in zip(
+        vor.ridge_points,
+        vor.ridge_vertices
+    ):
         if v2 < 0:
             v1, v2 = v2, v1
         if v1 >= 0:  # bounded Voronoi edge
             if intersect(
-                vor.points[p1], vor.points[p2], vor.vertices[v1], vor.vertices[v2]
+                vor.points[p1],
+                vor.points[p2],
+                vor.vertices[v1],
+                vor.vertices[v2]
             ):
                 gabriel.add_edge(p1, p2)
             continue
@@ -196,38 +178,39 @@ def get_gabriel_graph(points, q=None, iteration=None):
             normal = np.array([-p1p2[1], p1p2[0]])
 
             midpoint = vor.points[[p1, p2]].mean(axis=0)
-            direction = np.sign(np.dot(midpoint - center, normal)) * normal
+            direction = np.sign(
+                np.dot(midpoint - center, normal)
+            ) * normal
             length = 2 * max(
                 np.linalg.norm(vor.points[p1] - vor.vertices[v2]),
                 np.linalg.norm(vor.points[p2] - vor.vertices[v2]),
             )
             far_point = vor.vertices[v2] + direction * length
 
-            if intersect(vor.points[p1], vor.points[p2], vor.vertices[v2], far_point):
+            if intersect(
+                vor.points[p1],
+                vor.points[p2],
+                vor.vertices[v2],
+                far_point
+            ):
                 gabriel.add_edge(p1, p2)
         elif v2 < 0:  # two-sided unbounded Voronoi edge
             gabriel.add_edge(p1, p2)
+
     gabriel.graph["type"] = "gabriel"
-    if q is not None:
-        print(
-            "Finished computing Gabriel, numpts="
-            + str(len(points))
-            + ", iteration "
-            + str(iteration)
-        )
-        # multiprocessing:
-        q.put({iteration: gabriel})
-    else:
-        return gabriel
+    print(
+        f"Finished computing Gabriel, numpts={len(points)}, "
+        f"iteration {iteration}"
+    )
+
+    # multiprocessing:
+    q.put({iteration: gabriel})
 
 
-#### Urquhart ####
 def get_urquhart_graph(points, q, iteration):
     print(
-        "Working on Urquhart, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Working on Urquhart, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
     points = np.array(points)
     coords = [{"pos": pt} for pt in points]
@@ -263,23 +246,18 @@ def get_urquhart_graph(points, q, iteration):
     urq_graph.graph["weight"] = total_weight_of_edges
     urq_graph.graph["type"] = "urq"
     print(
-        "Finished computing Urquhart, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Finished computing Urquhart, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
 
     # multiprocessing:
     q.put({iteration: urq_graph})
 
 
-#### Bitonic ####
 def get_bitonic_tour(points, q, iteration):
     print(
-        "Working on Bitonic TSP, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Working on Bitonic TSP, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
     points = np.array(points)
     # points = sorted(points , key=lambda k: [k[0], k[1]])
@@ -295,25 +273,36 @@ def get_bitonic_tour(points, q, iteration):
     partial_bitonic_path_edges = {
         1: [[1, 0]]
     }  # records partial bitonic paths at each iteration l
+
     for l in range(2, n):
         path_values = []
         for i in range(2, l + 1):
             # record lengths of candidate paths at the l-th step
             path_values.append(
-                np.linalg.norm(points[l] - points[i - 2])
-                + min_lengths[i - 1]
-                + sum([np.linalg.norm(points[k] - points[k - 1]) for k in range(i, l)])
+                np.linalg.norm(points[l] - points[i - 2]) +
+                min_lengths[i - 1] +
+                sum([
+                    np.linalg.norm(points[k] - points[k - 1])
+                    for k in range(i, l)
+                ])
             )
+
         # determine length and index of shortest candidate path
-        path_lngth, idx = min((val, idx) for (idx, val) in enumerate(path_values))
+        path_lngth, idx = min(
+            (val, idx)
+            for (idx, val) in enumerate(path_values)
+        )
         min_lengths = min_lengths + [path_lngth]
         # update latest partial bitonic path
         partial_bitonic_path_edges[l] = (
-            partial_bitonic_path_edges[idx + 1]
-            + [[l, idx]]
-            + [[k - 1, k] for k in range(idx + 2, l)]
+            partial_bitonic_path_edges[idx + 1] +
+            [[l, idx]] +
+            [[k - 1, k] for k in range(idx + 2, l)]
         )
-    bitonic_tour_edges = partial_bitonic_path_edges[n - 1] + [[n - 2, n - 1]]
+
+    bitonic_tour_edges = (
+        partial_bitonic_path_edges[n - 1] + [[n - 2, n - 1]]
+    )
     bitonic_tour.add_edges_from(bitonic_tour_edges)
 
     total_weight_of_edges = 0.0
@@ -327,17 +316,15 @@ def get_bitonic_tour(points, q, iteration):
     bitonic_tour.graph["weight"] = total_weight_of_edges
     bitonic_tour.graph["type"] = "bitonic"
     print(
-        "Finished computing Bitonic TSP, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Finished computing Bitonic TSP, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
 
     # multiprocessing:
     q.put({iteration: bitonic_tour})
 
 
-##### Generate Distance matrix #####
+# Generate Distance matrix for TSPSolver
 def generate_distance_matrix(pts, metric, mode):
     N = len(pts)
     t = 0 if mode == "tour" else 1
@@ -351,57 +338,49 @@ def generate_distance_matrix(pts, metric, mode):
         D = np.zeros((N + t, N + t))
         for i in range(N):
             for j in range(N):
-                D[i, j] = np.linalg.norm(pts[i] - pts[j], ord=int(metric))
+                D[i, j] = np.linalg.norm(
+                    pts[i] - pts[j],
+                    ord=int(metric)
+                )
     return D
 
 
-#### Write distance matrix to file ####
+# Write distance matrix to file for TSPSolver
 def write_distance_matrix_to_file(D, fname, dscale=10000):
     with open(fname, "w") as file:
         numrows, numcols = D.shape[0], D.shape[1]
-        assert numrows == numcols, (
-            "Number of rows and columns in distance matrix"
-            + " must be equal, as matrix of distances is square"
-        )
+        assert numrows == numcols, "row length must equal column length"
 
-        file.write("NAME: sampleinstance\n")
-        file.write("TYPE: TSP\n")
         file.write(
-            "COMMENT: An explicit distance matrix between given set of points."
-            + " Scaling factor (dscale) used for getting integer distance below ="
-            + "  {dscale}\n".format(dscale=dscale)
+            "NAME: sampleinstance\n"
+            "TYPE: TSP\n"
+            f"COMMENT: Distance matrix given; scaling factor {dscale}\n"
+            f"DIMENSION: {numrows}\n"
+            "EDGE_WEIGHT_TYPE: EXPLICIT\n"
+            "EDGE_WEIGHT_FORMAT: FULL_MATRIX\n"
+            "EDGE_WEIGHT_SECTION\n"
         )
-        file.write("DIMENSION: {dim}\n".format(dim=numrows))
-        file.write("EDGE_WEIGHT_TYPE: EXPLICIT\n")
-        file.write("EDGE_WEIGHT_FORMAT: FULL_MATRIX\n")
-        file.write("EDGE_WEIGHT_SECTION\n")
 
-        # it is essential that distances be integers, otherwise concorde crashes.
-        # this is also the reason for the scaling factor that has been introduced,
-        # to ensure the original distances are preserved as much as possible
+        # distances must be integers. so scaling factor is used
         for i in range(numrows):
             for j in range(numcols):
-                file.write("{value} \t".format(value=int(dscale * D[i, j])))
-            file.write("\n")
-        file.write("EOF")
+                file.write(f'{int(dscale*D[i,j])} \t')
+            file.write('\n')
+        file.write('EOF')
 
 
-#### Solve with Concorde from file ####
+# Solve with Concorde from file
 def solve_tsp_from_file(fname):
     solver = TSPSolver.from_tspfile(fname)
     solution = solver.solve()
     return solution
 
 
-#### Concorde TSP for tour/path for any metric ####
+# Concorde TSP for tour/path for any Lp metric
 def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
     print(
-        "Working on TSP "
-        + mode
-        + ", numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Working on TSP {mode}, numpts={len(points)}, "
+        f"iteration={iteration}"
     )
     points = np.array(points)
     n = len(points)
@@ -421,7 +400,12 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
         return tsp_graph
 
     cwd = os.getcwd()
-    new_wd = os.path.join(cwd, mode + "-wds/", dirname, mode + "-wd" + str(iteration))
+    new_wd = os.path.join(
+        cwd,
+        f"{mode}-wds",
+        dirname,
+        f"{mode}-wd{iteration}"
+    )
     if not os.path.isdir(new_wd):
         os.makedirs(new_wd)
     os.chdir(new_wd)
@@ -435,7 +419,11 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
         solution = solver.solve()
     else:
         D = generate_distance_matrix(points, metric=metric, mode=mode)
-        write_distance_matrix_to_file(D, fname="instance.tsp", dscale=1000000)
+        write_distance_matrix_to_file(
+            D,
+            fname="instance.tsp",
+            dscale=1000000
+        )
         solution = solve_tsp_from_file("instance.tsp")
 
     # get solution inds and add nodes
@@ -443,9 +431,10 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
 
     # add correct edges to graph
     if mode == "tour":
-        edge_list = list(zip(idxs_along_tsp, idxs_along_tsp[1:])) + [
-            (idxs_along_tsp[-1], idxs_along_tsp[0])
-        ]
+        edge_list = (
+            list(zip(idxs_along_tsp, idxs_along_tsp[1:])) +
+            [(idxs_along_tsp[-1], idxs_along_tsp[0])]
+        )
         tsp_graph.add_edges_from(edge_list)
     elif mode == "path":
         dummy_node_ind = idxs_along_tsp.index(n)
@@ -453,7 +442,8 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
             path = idxs_along_tsp[1:]
         else:
             path = (
-                idxs_along_tsp[dummy_node_ind + 1 :] + idxs_along_tsp[:dummy_node_ind]
+                idxs_along_tsp[dummy_node_ind + 1 :] +
+                idxs_along_tsp[:dummy_node_ind]
             )
         for i in range(0, n - 1):
             tsp_graph.add_edge(path[i], path[i + 1])
@@ -469,12 +459,8 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
     tsp_graph.graph["weight"] = total_weight_of_edges
     tsp_graph.graph["type"] = "concorde"
     print(
-        "Finished computing TSP "
-        + mode
-        + ", numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Finished computing TSP {mode}, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
 
     for file in os.listdir(os.getcwd()):
@@ -485,32 +471,33 @@ def get_tsp_graph(points, q, iteration, mode, dirname, metric="2"):
     q.put({iteration: tsp_graph})
 
 
-#### Order-k Delaunay Graph ####
 def get_kdelaunay_graph(points, order, q, iteration):
-    """Returns the k-Delaunay graph.
-    The k-Delaunay graph (a.k.a., the order k Delaunay graph) contains an edge
-    ij if and only if there exists a disk containing i and j and at most k
-    additional points. See that the 0-Delaunay graph is the standard Delaunay
-    graph. Moreover, for any natural k, k-Delaunay \subseteq (k+1)-Delaunay.
+    """
+    Returns the k-Delaunay graph.
+    The k-Delaunay graph (a.k.a., the order k Delaunay graph)
+    contains an edge ij if and only if there exists a disk
+    containing i and j and at most k additional points. See
+    that the 0-Delaunay graph is the standard Delaunay graph.
+    Moreover, for any natural k, k-Delaunay subseteq (k+1)-
+    Delaunay.
+
     Args:
-        points (list): List (len n) of lists (len 2) of floats representing
-          coordinates.
-        order (int): The order (k) of the graph to be computed.
+        points (list):
+            List (len n) of lists (len 2) of floats representing
+            coordinates.
+        order (int):
+            The order (k) of the graph to be computed.
     """
     assert (order >= 0) and isinstance(order, int)
     print(
-        "Working on Order-"
-        + str(order)
-        + " Delaunay, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Working on {order}-Delaunay, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
     # compute k_delaunay graph
-    # see that we consider 0-Delaunay = (the standard) Delaunay,
-    # whereas those who implemented OrderKDelaunay consider
-    # 1-Delaunay = Delaunay. As such, we increment the order to match the
-    # OrderKDelaunay software's convention.
+    # we use 0-Delaunay = Delaunay triangulation, whereas those
+    # who implemented OrderKDelaunay use 1-Delaunay = Delaunay.
+    # As such, we increment the order to match the OrderKDelaunay
+    # software's convention.
     k_delaunay = OrderKDelaunay(points, order + 1)
     k_delaunay_edges = []
 
@@ -524,7 +511,10 @@ def get_kdelaunay_graph(points, order, q, iteration):
         for pair in it.combinations(clique_idxs, 2):
             k_delaunay_edges.append(list(pair))
 
-    k_delaunay_edges = set([tuple(sorted(edge)) for edge in k_delaunay_edges])
+    k_delaunay_edges = set([
+        tuple(sorted(edge))
+        for edge in k_delaunay_edges
+    ])
 
     k_delaunay = nx.Graph()
     points = np.array(points)
@@ -532,16 +522,13 @@ def get_kdelaunay_graph(points, order, q, iteration):
     coords = [{"pos": pt} for pt in points]
     k_delaunay.add_nodes_from(zip(range(len(points)), coords))
     edges = [
-        (v, w, np.linalg.norm(points[v] - points[w])) for (v, w) in k_delaunay_edges
+        (v, w, np.linalg.norm(points[v] - points[w]))
+        for (v, w) in k_delaunay_edges
     ]
     k_delaunay.add_weighted_edges_from(edges)
     print(
-        "Finished computing Order-"
-        + str(order)
-        + " Delaunay, numpts="
-        + str(len(points))
-        + ", iteration "
-        + str(iteration)
+        f"Finished computing {order}-Delaunay, numpts={len(points)}, "
+        f"iteration {iteration}"
     )
 
     # multiprocessing
@@ -550,6 +537,12 @@ def get_kdelaunay_graph(points, order, q, iteration):
 
 def minus_func(d1, d2, points, q, iteration):
     # computes the graph g1-g2
-    g1 = d1["func"](points=points, **{k: v for k, v in d1.items() if k != "func"})
-    g2 = d2["func"](points=points, **{k: v for k, v in d2.items() if k != "func"})
+    g1 = d1["func"](
+        points=points,
+        **{k: v for k, v in d1.items() if k != "func"}
+    )
+    g2 = d2["func"](
+        points=points,
+        **{k: v for k, v in d2.items() if k != "func"}
+    )
     q.put({iteration: minus(g1, g2)})

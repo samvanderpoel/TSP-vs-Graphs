@@ -82,11 +82,16 @@ for item in contents:
                 if major_id not in which_comps:
                     which_comps[major_id] = []
                 which_comps[major_id] += [minor_id]
-            graphs_to_compute = set(which_comps.keys()) | set(
-                graphid for v in which_comps.values() for graphid in v
+            graphs_to_compute = (
+                set(which_comps.keys()) |
+                set(
+                    graphid
+                    for v in which_comps.values()
+                    for graphid in v
+                )
             )
             kdels_labs = {
-                g: " ".join(["Order-" + str(g[:-3]), "Delaunay"])
+                g:" ".join(["Order-" + str(g[:-3]), "Delaunay"])
                 for g in graphs_to_compute
                 if re.match("[0-9]+del", g)
             }
@@ -103,9 +108,16 @@ for item in contents:
                 majorid, minorid = comp.split("_")
                 major_name, minor_name = labels[majorid], labels[minorid]
                 print(
-                    colored(major_name + " vs. " + minor_name + " comparisons:", "red")
+                    colored(
+                        f"{major_name} vs. {minor_name} comparisons: ",
+                        "red"
+                    )
                 )
-                all_data = np.array([frac for _, data in v.items() for frac in data])
+                all_data = np.array([
+                    frac
+                    for _, data in v.items()
+                    for frac in data
+                ])
                 numtot = len(all_data)
                 minpts = min([num for num, data in v.items()])
                 maxpts = max([num for num, data in v.items()])
@@ -118,19 +130,8 @@ for item in contents:
                 stdpts = round(np.std(all_data), 3)
                 print("min\t25\tmed\tmean\t75\tmax\tstdev")
                 print(
-                    str(minimum)
-                    + "\t"
-                    + str(pct25)
-                    + "\t"
-                    + str(median)
-                    + "\t"
-                    + str(ave)
-                    + "\t"
-                    + str(pct75)
-                    + "\t"
-                    + str(maximum)
-                    + "\t"
-                    + str(stdpts)
+                    f"{minimum}\t{pct25}\t{median}\t{ave}\t"
+                    f"{pct75}\t{maximum}\t{stdpts}"
                 )
                 subset = round(np.mean(all_data == 1), 3)
                 print(
@@ -139,7 +140,7 @@ for item in contents:
                 )
                 print(
                     "Range of point cloud sizes: "
-                    + colored(str(minpts) + " to " + str(maxpts), "yellow")
+                    + colored(f"{minpts} to {maxpts}", "yellow")
                 )
                 print(
                     "Fraction of point clouds whose intersection is 100%: "
@@ -164,18 +165,19 @@ for item in contents:
                 if not summary:
                     for num, data in v.items():
                         print(
-                            "num pts: "
-                            + str(num)
-                            + "\t\t"
-                            + "point clouds simulated:\t"
-                            + str(len(data))
+                            f"num pts: {num}\t\t"
+                            f"point clouds simulated:\t{len(data)}"
                         )
                 print("")
-            print(colored("\033[F" + 55 * "-", "green"))
+            print(colored("\033[F" + 55*"-", "green"))
         except:
             continue
 
 if export:
-    with open("results/" + jobname + "/stats.csv", "w", newline="\n") as f:
+    with open(
+        os.path.join("results", jobname, "stats.csv"),
+        "w",
+        newline="\n"
+    ) as f:
         writer = csv.writer(f)
         writer.writerows(results)
