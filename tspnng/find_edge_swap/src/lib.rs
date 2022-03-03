@@ -126,28 +126,6 @@ type IndexableGraph = (
 /// Instantiates a `petgraph::Graph` from a slice of two-tuples denoting edges.
 ///
 /// Returns the newly instantiated `Graph`, along with `HashMap`s for keeping track of indices.
-fn _graph_from_edges(edge_list: &[(usize, usize)]) -> IndexableGraph {
-    let mut g = Graph::<usize, usize, Undirected>::default();
-    let mut node_indices = HashMap::<usize, NodeIndex>::new();
-    let mut edge_indices = HashMap::<(usize, usize), EdgeIndex>::new();
-    for (i, j) in edge_list.iter() {
-        // add nodes
-        // ix is node i's index
-        let ix = g.add_node(*i);
-        node_indices.insert(*i, ix);
-        // jx is node j's index
-        let jx = g.add_node(*j);
-        node_indices.insert(*j, jx);
-
-        // add edge
-        // ex is edge (ix, jx)'s index
-        let ex = g.add_edge(ix, jx, 1);
-        edge_indices.insert((*i, *j), ex);
-    }
-
-    (g, node_indices, edge_indices)
-}
-
 fn graph_from_edges(edge_list: &[(usize, usize)]) -> IndexableGraph {
     let mut g = Graph::<usize, usize, Undirected>::default();
     let mut node_indices = HashMap::<usize, NodeIndex>::new();
