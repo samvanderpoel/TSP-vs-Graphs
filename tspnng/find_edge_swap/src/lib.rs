@@ -222,7 +222,9 @@ fn snng_parallel(n: usize, k: usize) -> Vec<Vec<usize>> {
 fn snng_set_diff(i: usize, n: usize) -> Vec<usize> {
     let a = (0..n).collect::<HashSet<usize>>();
     if i == 0 {
-        let b = vec![i, (i + 1) % n].into_iter().collect::<HashSet<usize>>();
+        let b = vec![n - 1, i, (i + 1) % n]
+            .into_iter()
+            .collect::<HashSet<usize>>();
         a.difference(&b).copied().collect::<Vec<usize>>()
     } else {
         let b = vec![(i - 1) % n, i, (i + 1) % n]
