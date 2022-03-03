@@ -68,8 +68,20 @@ fn found_edge_swap_sigma(
             continue;
         } else {
             for i in 0..n {
-                // if i == 0, then the subtraction i-1 won't work (usize underflow)
-                if e[i] == -1 && i >= 1 {
+                // if i == 0, then the subtraction i-1 won't work (usize underflow), so we handle
+                // this case separately
+                if e[i] == -1 && i == 0 {
+                    // remove edge (i, n - 1)
+                    if let Some(x) = edge_indices.get(&(i, n - 1)) {
+                        g.remove_edge(*x);
+                        // add edge (i, sigma[i])
+                        g.add_edge(
+                            *node_indices.get(&i).unwrap(),
+                            *node_indices.get(&sigma[i]).unwrap(),
+                            1,
+                        );
+                    }
+                } else if e[i] == -1 && i >= 1 {
                     // remove edge (i, (i - 1) % n)
                     if let Some(x) = edge_indices.get(&(i, (i - 1) % n)) {
                         g.remove_edge(*x);
