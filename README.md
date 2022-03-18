@@ -1,6 +1,6 @@
 # TSP-vs-Graphs
 
-<img src="example-graphs/aggregate.png" width=max-width>
+<img src="point-sets/aggregate.png" width=max-width>
 
 Associated paper: [On Some Relations Between Optimal TSP Solutions and Proximity Graphs in the Plane](https://eurocg2022.unipg.it/booklet/EuroCG2022-Booklet.pdf#page=491) with [Logan D. Graham](https://github.com/LoganDGraham), Joseph S. B. Mitchell, and [Gaurish Telang](https://github.com/gtelang).
 
@@ -128,7 +128,7 @@ python plot/plot.py --file tsplib/instances/euclidean_instances/tsp225.yaml
 Compute and plot graphs as described above (by pressing `i`), or press `t` while the GUI is selected to display the following
 
 <p align="center">
-  <img src="example-graphs/tsplib.png" width=500>
+  <img src="point-sets/tsplib.png" width=500>
 </p>
 
 # Point Sets
