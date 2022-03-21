@@ -1,8 +1,10 @@
 Cython==0.29.24
 matplotlib==3.3.2
+maturin==0.12.11
 networkx==2.5.1
 numpy==1.19.2
 pyyaml==6.0
 scikit-learn==0.23.2
 scipy==1.6.0
+setuptools-rust==1.1.2
 termcolor==1.1.0

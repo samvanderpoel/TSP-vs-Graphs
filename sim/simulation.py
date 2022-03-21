@@ -1,5 +1,5 @@
 import functools
-from multiprocessing import Process, Queue, Manager
+from multiprocessing import Manager, Process, Queue
 import numpy as np
 import networkx as nx
 import argparse
@@ -11,21 +11,6 @@ from cloud_funcs import *
 from graph_funcs import *
 from utils import *
 
-"""
-Graphs are classified with a major_id or minor_id.
-Graphs with major_id include:
-    - TSP tour:     'tour'
-    - TSP path:     'path'
-    - Bitonic TSP:  'bito'
-Graphs with minor_id include:
-    - 1-NNG:          '1nng'        - Gabriel:        'gab'   
-    - 2-NNG:          '2nng'        - Urquhart:       'urq'
-    - 20%-NNG:        '20pt'        - Delaunay:       'del'
-    - MST:            'mst'         - Bitonic TSP:    'bito'
-    - Order-1 Del.:   '1del'        - Order-2 Del.:   '2del'
-A graph having major_id means that other graphs are being
-compared against it.
-"""
 
 class Simulation:
 
@@ -227,7 +212,6 @@ class Simulation:
             proc = Process(target=task)
             procs.append(proc)
             proc.start()
-        for proc in procs:
             proc.join()
         
         # update data.txt with new comparison data
@@ -279,10 +263,10 @@ class Simulation:
                 os.path.join(self.clouddir, "compute-times.txt"), 'a+'
             ) as f:
                 f.write(
-                    f"Numpts: {numpts},\tCompute time: " +
-                    f"{round(time_for_numpts, 3)} secs\t\t= " +
-                    f"{round(time_for_numpts/60, 3)} mins\t\t= " +
-                    f"{round(time_for_numpts/3600, 3)} hours\n"
+                    f"Numpts: {numpts},\tCompute time: "
+                    + f"{round(time_for_numpts, 3)} secs\t\t= "
+                    + f"{round(time_for_numpts/60, 3)} mins\t\t= "
+                    + f"{round(time_for_numpts/3600, 3)} hours\n"
                 )
 
         self.cleanup_dirs()
@@ -291,8 +275,8 @@ class Simulation:
     def cleanup_dirs(self):
         # remove tour-wds and path-wds directories that were
         # created by get_tsp_graph
-        tourwd = os.path.join("tour-wds", "tour-wds-" + self.cloudtype)
-        pathwd = os.path.join("path-wds", "path-wds-" + self.cloudtype)
+        tourwd = os.path.join("tour-wds", f"tour-wds-{self.cloudtype}")
+        pathwd = os.path.join("path-wds", f"path-wds-{self.cloudtype}")
         cwd = os.getcwd()
         if os.path.isdir(os.path.join(cwd, tourwd)):
             for item in os.listdir(os.path.join(cwd, tourwd)):
