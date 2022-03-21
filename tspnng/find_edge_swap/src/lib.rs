@@ -40,11 +40,11 @@ fn edge_swap_search(
     // iterate over all Snng prefixes (for parallelism via gnu parallel)
     for prefix in snng_parallel(n, k).into_iter().multi_cartesian_product() {
         // instantiate a graph along with hashmaps to keep track of indices
-        let (mut g, node_indices, edge_indices) = graph_from_edges(edge_list);
+        let (g, node_indices, edge_indices) = graph_from_edges(edge_list);
 
         let sigma = [&prefix[..], suffix].concat();
 
-        if found_edge_swap_sigma(&sigma, n, &mut g, &node_indices, &edge_indices) {
+        if found_edge_swap_sigma(&sigma, n, &g, &node_indices, &edge_indices) {
             continue;
         } else {
             return Some(sigma);
@@ -57,12 +57,13 @@ fn edge_swap_search(
 fn found_edge_swap_sigma(
     sigma: &[usize],
     n: usize,
-    g: &mut Graph<usize, usize, Undirected>,
+    g: &Graph<usize, usize, Undirected>,
     node_indices: &HashMap<usize, NodeIndex>,
     edge_indices: &HashMap<(usize, usize), EdgeIndex>,
 ) -> bool {
     // iterate over [-1, -1, -1], [-1, -1, 0], ..., [1, 1, 1]
     for e in vec![[-1, 0, 1]; n].into_iter().multi_cartesian_product() {
+        let mut g_prime = g.clone();
         // skip the zero vector
         if e.iter().all(|&x| x == 0) {
             continue;
@@ -73,9 +74,9 @@ fn found_edge_swap_sigma(
                 if e[i] == -1 && i == 0 {
                     // remove edge (i, n - 1)
                     if let Some(x) = edge_indices.get(&(i, n - 1)) {
-                        g.remove_edge(*x);
+                        g_prime.remove_edge(*x);
                         // add edge (i, sigma[i])
-                        g.add_edge(
+                        g_prime.add_edge(
                             *node_indices.get(&i).unwrap(),
                             *node_indices.get(&sigma[i]).unwrap(),
                             1,
@@ -84,9 +85,9 @@ fn found_edge_swap_sigma(
                 } else if e[i] == -1 && i >= 1 {
                     // remove edge (i, (i - 1) % n)
                     if let Some(x) = edge_indices.get(&(i, (i - 1) % n)) {
-                        g.remove_edge(*x);
+                        g_prime.remove_edge(*x);
                         // add edge (i, sigma[i])
-                        g.add_edge(
+                        g_prime.add_edge(
                             *node_indices.get(&i).unwrap(),
                             *node_indices.get(&sigma[i]).unwrap(),
                             1,
@@ -95,9 +96,9 @@ fn found_edge_swap_sigma(
                 } else if e[i] == 1 {
                     // remove edge (i, (i + 1) % n)
                     if let Some(x) = edge_indices.get(&(i, (i + 1) % n)) {
-                        g.remove_edge(*x);
+                        g_prime.remove_edge(*x);
                         // add edge (i, sigma[i])
-                        g.add_edge(
+                        g_prime.add_edge(
                             *node_indices.get(&i).unwrap(),
                             *node_indices.get(&sigma[i]).unwrap(),
                             1,
@@ -106,7 +107,7 @@ fn found_edge_swap_sigma(
                 }
             }
             // if g is a cycle
-            if is_cycle(g) {
+            if is_cycle(&g_prime) {
                 return true;
             }
         }
