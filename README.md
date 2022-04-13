@@ -2,11 +2,11 @@
 
 <img src="point-sets/aggregate.png" width=max-width>
 
-Associated paper: [On Some Relations Between Optimal TSP Solutions and Proximity Graphs in the Plane](https://eurocg2022.unipg.it/booklet/EuroCG2022-Booklet.pdf#page=491) with [Logan D. Graham](https://github.com/LoganDGraham), Joseph S. B. Mitchell, and [Gaurish Telang](https://github.com/gtelang).
+Associated paper: [On Some Relations Between Optimal TSP Solutions and Proximity Graphs in the Plane](https://eurocg2022.unipg.it/booklet/EuroCG2022-Booklet.pdf#page=495) with [Logan D. Graham](https://github.com/LoganDGraham), Joseph S. B. Mitchell, and [Gaurish Telang](https://github.com/gtelang).
 
-TSP-vs-Graphs is a repository for exploring relations between the traveling salesman problem (TSP) and proximity graphs. It includes
+TSP-vs-Graphs is a repository for researching relations between the traveling salesman problem (TSP) and proximity graphs. It includes
 - a simulation API
-- an GUI for plotting point sets and computing the TSP and proximity graphs
+- a GUI for plotting point sets and computing the TSP and proximity graphs
 - the experimental results of our paper
 - a highly optimized implementation of the TSP-NNG enumeration algorithm
 - a collection of Euclidean TSPLIB instances ready for plotting
