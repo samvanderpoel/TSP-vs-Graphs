@@ -1,6 +1,6 @@
 #!/bin/bash
 
-module load anaconda/3
+module load anaconda/3 slurm
 
 n=12
 p=3 # gnu-parallel will spawn (n-3)^p tasks
