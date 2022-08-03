@@ -31,19 +31,27 @@ conda env create -f tsp_env.yml
 conda activate tsp
 conda install matplotlib-base=3.5.0
 ```
-Alternatively, you may use pip (with Python 3.7), which is sufficient for the simulation API and GUI:
+Alternatively, you may use pip (with Python 3.7), which is sufficient for the simulation API and GUI. If you use pip, we recommend initializing a virtual environment first (this could be a conda virtual environment).
 ```
 pip install -r requirements.txt
 ```
+
+Another (arguably better) way to setup the necessary libraries using pip is to navigate to the top of the TSP-vs-Graphs directory and run
+```
+pip install .
+```
+(If you intend to make edits to the TSP-vs-Graphs source code, then run `pip install -e .` instead).
+
 If you use pip, you will need to install a separate [Rust](https://rustup.rs) compiler for the TSP-NNG algorithm.
 
 Next, set up [PyConcorde](https://github.com/jvkersch/pyconcorde):
 ```
 git clone https://github.com/jvkersch/pyconcorde
 cd pyconcorde
-pip install -e .
+pip install .
 cd ..
 ```
+(If you intend to make edits to the PyConcorde source code, then run `pip install -e .` instead).
 [GNU Parallel](https://www.gnu.org/software/parallel/) is used in our parallel TSP-NNG implementation, and it is optionally used in the [Simulation](#simulation) code.
 
 # Simulation
